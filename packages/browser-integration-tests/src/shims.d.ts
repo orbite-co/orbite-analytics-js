@@ -1,4 +1,4 @@
-import type { AnalyticsSnippet } from '@segment/analytics-next'
+import type { AnalyticsSnippet } from '@orbite/analytics-js'
 
 declare global {
   interface Window {

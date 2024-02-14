@@ -1,4 +1,4 @@
-import { sleep } from '@segment/analytics-core'
+import { sleep } from '@orbite/analytics-core'
 import { TestFetchClient } from '../../__tests__/test-helpers/create-test-analytics'
 import { HTTPResponse } from '../http-client'
 import { TokenManager, TokenManagerSettings } from '../token-manager'

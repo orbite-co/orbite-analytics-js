@@ -19,7 +19,7 @@ export type Tag = {
 /**
  *
  * @returns list of tags
- * @example ["@segment/analytics-core@1.0.0", "@segment/analytics-next@2.1.1"]
+ * @example ["@segment/analytics-core@1.0.0", "@orbite/analytics-js@2.1.1"]
  */
 export const getCurrentGitTags = async (): Promise<Tag[]> => {
   const { stdout, stderr, code } = await spawn('git', [
@@ -83,7 +83,7 @@ export const getChangelogPath = (packageName: string): string | undefined => {
 /**
  *
  * @returns list of tags
- * @example ["@segment/analytics-core@1.0.0", "@segment/analytics-next@2.1.1"]
+ * @example ["@segment/analytics-core@1.0.0", "@orbite/analytics-js@2.1.1"]
  */
 const createGithubRelease = async (
   tag: string,
@@ -119,7 +119,7 @@ const extractPartsFromTag = (rawTag: string): Tag | undefined => {
 
 /**
  *
- * @param rawTags - string delimited list of tags (e.g. `@segment/analytics-next@2.1.1 @segment/analytics-core@1.0.0`)
+ * @param rawTags - string delimited list of tags (e.g. `@orbite/analytics-js@2.1.1 @segment/analytics-core@1.0.0`)
  */
 export const parseRawTags = (rawTags: string): Tag[] => {
   return rawTags

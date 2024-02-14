@@ -24,7 +24,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@orbite/analytics-next...",
+    ".": "yarn run -T turbo run --filter=@orbite/analytics-js...",
     "build-prep": "sh scripts/build-prep.sh",
     "version": "yarn run build-prep && git add src/generated/version.ts",
     "umd": "webpack",

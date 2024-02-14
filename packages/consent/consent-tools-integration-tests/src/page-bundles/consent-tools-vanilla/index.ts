@@ -1,4 +1,4 @@
-import { AnalyticsBrowser } from '@segment/analytics-next'
+import { AnalyticsBrowser } from '@orbite/analytics-js'
 import { createWrapper } from '@segment/analytics-consent-tools'
 
 const fakeCategories = { FooCategory1: true, FooCategory2: true }

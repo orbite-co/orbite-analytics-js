@@ -19,8 +19,8 @@
   "devDependencies": {
     "@internal/config": "workspace:^",
     "@internal/test-helpers": "workspace:^",
-    "@playwright/test": "^1.28.1",
     "@orbite/analytics-js": "workspace:^",
+    "@playwright/test": "^1.28.1",
     "http-server": "14.1.1",
     "tslib": "^2.4.1"
   }

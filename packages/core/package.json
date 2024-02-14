@@ -18,7 +18,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@segment/analytics-core",
+    ".": "yarn run -T turbo run --filter=@orbite/analytics-core",
     "test": "yarn jest",
     "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
     "build": "yarn concurrently 'yarn:build:*'",

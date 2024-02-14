@@ -27,17 +27,17 @@
     "jest": "yarn run -T jest"
   },
   "peerDependencies": {
-    "@segment/analytics-next": ">=1.53.1"
+    "@orbite/analytics-js": ">=1.53.1"
   },
   "peerDependenciesMeta": {
-    "@segment/analytics-next": {
+    "@orbite/analytics-js": {
       "optional": true
     }
   },
   "devDependencies": {
     "@internal/config": "workspace:^",
     "@internal/test-helpers": "workspace:^",
-    "@segment/analytics-next": "workspace:^"
+    "@orbite/analytics-js": "workspace:^"
   },
   "packageManager": "yarn@3.4.1",
   "license": "MIT",

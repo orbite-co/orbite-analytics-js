@@ -21,6 +21,6 @@
   },
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
-    "@segment/analytics-next": "workspace:^"
+    "@orbite/analytics-js": "workspace:^"
   }
 }

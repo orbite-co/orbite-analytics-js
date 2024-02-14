@@ -1,5 +1,5 @@
 import { createConsentStampingMiddleware } from '../consent-stamping'
-import { Context, MiddlewareFunction } from '@segment/analytics-next'
+import { Context, MiddlewareFunction } from '@orbite/analytics-js'
 
 describe(createConsentStampingMiddleware, () => {
   let middlewareFn: MiddlewareFunction

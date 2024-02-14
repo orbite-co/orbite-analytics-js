@@ -1,4 +1,4 @@
-import type { LegacySettings } from '@segment/analytics-next'
+import type { LegacySettings } from '@orbite/analytics-js'
 type RemotePlugin = NonNullable<LegacySettings['remotePlugins']>[0]
 
 export type DestinationSettingsBuilderConfig = Partial<RemotePlugin> & {

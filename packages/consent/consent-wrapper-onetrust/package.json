@@ -45,10 +45,10 @@
     "tslib": "^2.4.1"
   },
   "peerDependencies": {
-    "@segment/analytics-next": ">=1.53.1"
+    "@orbite/analytics-js": ">=1.53.1"
   },
   "peerDependenciesMeta": {
-    "@segment/analytics-next": {
+    "@orbite/analytics-js": {
       "optional": true
     }
   },

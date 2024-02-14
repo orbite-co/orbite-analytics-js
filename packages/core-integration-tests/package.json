@@ -14,6 +14,6 @@
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
     "@internal/config": "workspace:^",
-    "@segment/analytics-core": "workspace:^"
+    "@orbite/analytics-core": "workspace:^"
   }
 }
