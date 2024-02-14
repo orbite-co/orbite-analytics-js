@@ -2,7 +2,7 @@ import jsdom, { JSDOM } from 'jsdom'
 import unfetch from 'unfetch'
 import { LegacySettings } from '..'
 import { pWhile } from '../../lib/p-while'
-import { snippet } from '../../tester/__fixtures__/segment-snippet'
+import { snippet } from '../../tester/__fixtures__/snippet'
 import * as Factory from '../../test-helpers/factories'
 
 const cdnResponse: LegacySettings = {
@@ -14,7 +14,7 @@ const cdnResponse: LegacySettings = {
     Amplitude: {
       type: 'browser',
     },
-    Segmentio: {
+    Orbite: {
       type: 'browser',
     },
     Iterable: {
@@ -69,7 +69,7 @@ describe('CSP Detection', () => {
     jsd = new JSDOM(html, {
       runScripts: 'dangerously',
       resources: 'usable',
-      url: 'https://segment.com',
+      url: 'http://localhost:3000',
       virtualConsole,
     })
 
@@ -102,7 +102,7 @@ describe('CSP Detection', () => {
     handlers['securitypolicyviolation'].forEach((handler) => {
       handler({
         // @ts-ignore
-        blockedURI: 'cdn.segment.com',
+        blockedURI: 'cdp.orbite.co',
       })
     })
 
@@ -130,7 +130,7 @@ describe('CSP Detection', () => {
 
     const event = new window.Event('securitypolicyviolation') as any
     event.disposition = 'report'
-    event.blockedURI = 'cdn.segment.com'
+    event.blockedURI = 'cdp.orbite.co'
     document.dispatchEvent(event)
     expect(cspSpy).toBeCalled()
     expect(warnSpy).not.toHaveBeenCalled()

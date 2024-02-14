@@ -195,7 +195,7 @@ async function loadPluginFactory(
   remotePlugin: RemotePlugin,
   obfuscate?: boolean
 ): Promise<void | PluginFactory> {
-  const defaultCdn = new RegExp('https://cdn.segment.(com|build)')
+  const defaultCdn = new RegExp('https://cdp.orbite.co')
   const cdn = getCDN()
 
   if (obfuscate) {

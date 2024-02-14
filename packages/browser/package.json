@@ -1,9 +1,9 @@
 {
-  "name": "@segment/analytics-next",
+  "name": "@orbite/analytics-js",
   "version": "1.64.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-next",
+    "url": "https://github.com/orbite-co/orbite-analytics-js",
     "directory": "packages/browser"
   },
   "license": "MIT",
@@ -24,7 +24,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@segment/analytics-next...",
+    ".": "yarn run -T turbo run --filter=@orbite/analytics-next...",
     "build-prep": "sh scripts/build-prep.sh",
     "version": "yarn run build-prep && git add src/generated/version.ts",
     "umd": "webpack",
@@ -49,7 +49,7 @@
   ],
   "dependencies": {
     "@lukeed/uuid": "^2.0.0",
-    "@segment/analytics-core": "1.4.1",
+    "@orbite/analytics-js": "1.4.1",
     "@segment/analytics-generic-utils": "1.1.1",
     "@segment/analytics.js-video-plugins": "^0.2.1",
     "@segment/facade": "^3.4.9",

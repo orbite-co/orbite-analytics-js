@@ -78,7 +78,7 @@ describe('Remote Loader', () => {
           {
             name: 'remote plugin',
             creationName: 'remote plugin',
-            url: 'https://cdn.segment.com/actions/file.js',
+            url: 'https://cdp.orbite.co/actions/file.js',
             libraryName: 'testPlugin',
             settings: {},
           },
@@ -89,31 +89,6 @@ describe('Remote Loader', () => {
     )
 
     expect(loader.loadScript).toHaveBeenCalledWith('foo.com/actions/file.js')
-  })
-
-  it('should work if the cdn is staging', async () => {
-    const stagingURL = 'https://cdn.segment.build/actions/foo.js'
-
-    window.analytics = {}
-    window.analytics._cdn = 'foo.com'
-    await remoteLoader(
-      {
-        integrations: {},
-        remotePlugins: [
-          {
-            name: 'remote plugin',
-            creationName: 'remote plugin',
-            url: stagingURL,
-            libraryName: 'testPlugin',
-            settings: {},
-          },
-        ],
-      },
-      {},
-      {}
-    )
-
-    expect(loader.loadScript).toHaveBeenCalledWith('foo.com/actions/foo.js')
   })
 
   it('should attempt calling the library', async () => {

@@ -57,7 +57,7 @@ describe(sourceMiddlewarePlugin, () => {
       })
     })
 
-    it('uses a segment facade object', async () => {
+    it('uses a facade object', async () => {
       let type = ''
       const facadeMiddleware: MiddlewareFunction = ({ payload, next }) => {
         type = payload.type()

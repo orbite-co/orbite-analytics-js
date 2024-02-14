@@ -47,7 +47,7 @@ export const getCDN = (): string => {
     // - the script is loaded through a proxy
     // - the script is removed after execution
     // in this case, we fall back to the default Segment CDN
-    return `https://cdn.segment.com`
+    return `https://cdp.orbite.co`
   }
 }
 
@@ -83,5 +83,5 @@ export function getLegacyAJSPath(): string {
     return path.replace('analytics.min.js', 'analytics.classic.js')
   }
 
-  return `https://cdn.segment.com/analytics.js/v1/${writeKey}/analytics.classic.js`
+  return `https://cdp.orbite.co/analytics.js/v1/${writeKey}/analytics.classic.js`
 }

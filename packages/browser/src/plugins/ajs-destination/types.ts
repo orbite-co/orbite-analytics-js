@@ -1,6 +1,6 @@
 import { Group, Identify, Track, Page, Alias } from '@segment/facade'
 import { Analytics } from '../../core/analytics'
-import { Emitter } from '@segment/analytics-generic-utils'
+import { Emitter } from '@segment/analytics-generic-utils' // TODO: change package to orbite.co/analytics-generic-utils
 import { User } from '../../core/user'
 
 export interface LegacyIntegration extends Emitter {
@@ -18,7 +18,7 @@ export interface LegacyIntegration extends Emitter {
   alias?: (event: Alias) => void | Promise<void>
   group?: (event: Group) => void | Promise<void>
 
-  // Segment.io specific
+  // Orbite specific
   ontrack?: (event: Track) => void | Promise<void>
   onidentify?: (event: Identify) => void | Promise<void>
   onpage?: (event: Page) => void | Promise<void>

@@ -21,7 +21,7 @@ import {
   RemotePlugin,
 } from '../plugins/remote-loader'
 import type { RoutingRule } from '../plugins/routing-middleware'
-import { segmentio, SegmentioSettings } from '../plugins/segmentio'
+import { orbite, OrbiteSettings } from '../plugins/orbite'
 import { validation } from '../plugins/validation'
 import {
   AnalyticsBuffered,
@@ -60,7 +60,7 @@ export interface LegacyIntegrationConfiguration {
     categories: string[]
   }
 
-  // Segment.io specific
+  // Orbite specific
   retryQueue?: boolean
 
   // any extra unknown settings
@@ -106,13 +106,13 @@ export interface LegacySettings {
 
 export interface AnalyticsBrowserSettings extends AnalyticsSettings {
   /**
-   * The settings for the Segment Source.
+   * The settings for the Orbite Source.
    * If provided, `AnalyticsBrowser` will not fetch remote settings
    * for the source.
    */
   cdnSettings?: LegacySettings & Record<string, unknown>
   /**
-   * If provided, will override the default Segment CDN (https://cdn.segment.com) for this application.
+   * If provided, will override the default Orbite CDN (https://cdp.orbite.co) for this application.
    */
   cdnURL?: string
 }
@@ -141,7 +141,7 @@ export function loadLegacySettings(
 function hasLegacyDestinations(settings: LegacySettings): boolean {
   return (
     getProcessEnv().NODE_ENV !== 'test' &&
-    // just one integration means segmentio
+    // just one integration means orbite
     Object.keys(settings.integrations).length > 1
   )
 }
@@ -267,15 +267,15 @@ async function registerPlugins(
     toRegister.push(schemaFilter)
   }
 
-  const shouldIgnoreSegmentio =
-    (opts.integrations?.All === false && !opts.integrations['Segment.io']) ||
-    (opts.integrations && opts.integrations['Segment.io'] === false)
+  const shouldIgnore =
+    (opts.integrations?.All === false && !opts.integrations['Orbite']) ||
+    (opts.integrations && opts.integrations['Orbite'] === false)
 
-  if (!shouldIgnoreSegmentio) {
+  if (!shouldIgnore) {
     toRegister.push(
-      await segmentio(
+      await orbite(
         analytics,
-        mergedSettings['Segment.io'] as SegmentioSettings,
+        mergedSettings['Orbite'] as OrbiteSettings,
         legacySettings.integrations
       )
     )
@@ -343,7 +343,7 @@ async function loadAnalytics(
   }
 
   const retryQueue: boolean =
-    legacySettings.integrations['Segment.io']?.retryQueue ?? true
+    legacySettings.integrations['Orbite']?.retryQueue ?? true
 
   const opts: InitOptions = { retryQueue, ...options }
   const analytics = new Analytics(settings, opts)
@@ -386,14 +386,12 @@ async function loadAnalytics(
 }
 
 /**
- * The public browser interface for Segment Analytics
+ * The public browser interface for Orbite
  *
  * @example
  * ```ts
  *  export const analytics = new AnalyticsBrowser()
  *  analytics.load({ writeKey: 'foo' })
- * ```
- * @link https://github.com/segmentio/analytics-next/#readme
  */
 export class AnalyticsBrowser extends AnalyticsBuffered {
   private _resolveLoadStart: (
@@ -418,7 +416,7 @@ export class AnalyticsBrowser extends AnalyticsBuffered {
   /**
    * Fully initialize an analytics instance, including:
    *
-   * * Fetching settings from the segment CDN (by default).
+   * * Fetching settings from the CDN (by default).
    * * Fetching all remote destinations configured by the user (if applicable).
    * * Flushing buffered analytics events.
    * * Loading all middleware.

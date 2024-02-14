@@ -1,6 +1,6 @@
-# @segment/analytics-next
+# @orbite/analytics-js
 
-Analytics Next (aka Analytics 2.0) is the latest version of Segment’s JavaScript SDK - enabling you to send your data to any tool without having to learn, test, or use a new API every time.
+Orbite analytics for user tracking and event logging in the browser.
 
 ### Table of Contents
 

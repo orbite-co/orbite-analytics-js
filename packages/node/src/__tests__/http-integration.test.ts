@@ -5,7 +5,7 @@ import { createTestAnalytics } from './test-helpers/create-test-analytics'
 import { isValidDate } from './test-helpers/is-valid-date'
 import { pick } from 'lodash'
 import nock from 'nock'
-import { CoreContext } from '@segment/analytics-core'
+import { CoreContext } from '@orbite/analytics-core'
 
 const isoDateRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 
@@ -44,7 +44,7 @@ describe('Method Smoke Tests', () => {
   describe('Metadata', () => {
     const calls: any[] = []
     beforeEach(async () => {
-      scope = nock('https://api.segment.io') // using regex matching in nock changes the perf profile quite a bit
+      scope = nock('https://cdp.orbite.co') // using regex matching in nock changes the perf profile quite a bit
         .post('/v1/batch', function (_body: any) {
           calls.push(_body)
           return true
@@ -70,7 +70,7 @@ describe('Method Smoke Tests', () => {
   describe('Headers', () => {
     test(`A request should have the expected headers`, async () => {
       let headers = null
-      scope = nock('https://api.segment.io') // using regex matching in nock changes the perf profile quite a bit
+      scope = nock('https://cdp.orbite.co') // using regex matching in nock changes the perf profile quite a bit
         .post('/v1/batch')
         .reply(201, function () {
           headers = this.req.headers
@@ -97,7 +97,7 @@ describe('Method Smoke Tests', () => {
     let calls: any[]
     beforeEach(async () => {
       calls = []
-      scope = nock('https://api.segment.io') // using regex matching in nock changes the perf profile quite a bit
+      scope = nock('https://cdp.orbite.co') // using regex matching in nock changes the perf profile quite a bit
         .post('/v1/batch', function (_body: any) {
           calls.push(_body)
           return true
@@ -139,7 +139,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": {
                 "library": {
-                  "name": "@segment/analytics-node",
+                  "name": "@orbite/analytics-node",
                   "version": Any<String>,
                 },
               },
@@ -176,7 +176,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": {
                 "library": {
-                  "name": "@segment/analytics-node",
+                  "name": "@orbite/analytics-node",
                   "version": Any<String>,
                 },
               },
@@ -211,7 +211,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": {
                 "library": {
-                  "name": "@segment/analytics-node",
+                  "name": "@orbite/analytics-node",
                   "version": Any<String>,
                 },
               },
@@ -247,7 +247,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": {
                 "library": {
-                  "name": "@segment/analytics-node",
+                  "name": "@orbite/analytics-node",
                   "version": Any<String>,
                 },
               },
@@ -280,7 +280,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": {
                 "library": {
-                  "name": "@segment/analytics-node",
+                  "name": "@orbite/analytics-node",
                   "version": Any<String>,
                 },
               },
@@ -316,7 +316,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": {
                 "library": {
-                  "name": "@segment/analytics-node",
+                  "name": "@orbite/analytics-node",
                   "version": Any<String>,
                 },
               },
@@ -341,7 +341,7 @@ describe('Method Smoke Tests', () => {
 
 describe('Client: requestTimeout', () => {
   beforeEach(async () => {
-    nock('https://api.segment.io') // using regex matching in nock changes the perf profile quite a bit
+    nock('https://cdp.orbite.co') // using regex matching in nock changes the perf profile quite a bit
       .post('/v1/batch')
       .reply(201)
   })

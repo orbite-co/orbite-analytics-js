@@ -6,7 +6,7 @@ export type Callback<Ctx extends CoreContext = CoreContext> = (
   ctx: Ctx
 ) => Promise<unknown> | unknown
 
-export type SegmentEventType =
+export type OrbiteEventType =
   | 'track'
   | 'page'
   | 'identify'
@@ -44,6 +44,7 @@ export interface CoreOptions {
 export interface CoreExtraContext {
   /**
    * This is usually used to flag an .identify() call to just update the trait, rather than "last seen".
+   * TODO: Add a cookie parameter to the context object to catch first-party cookies.
    */
   active?: boolean
 
@@ -193,9 +194,9 @@ export interface CoreExtraContext {
   [key: string]: any
 }
 
-export interface CoreSegmentEvent {
+export interface CoreOrbiteEvent {
   messageId?: string
-  type: SegmentEventType
+  type: OrbiteEventType
 
   // page specific
   category?: string
@@ -220,12 +221,12 @@ export interface CoreSegmentEvent {
 
   sentAt?: Date
 
-  _metadata?: SegmentEventMetadata
+  _metadata?: OrbiteEventMetadata
 
   timestamp?: Timestamp
 }
 
-export interface SegmentEventMetadata {
+export interface OrbiteEventMetadata {
   failedInitializations?: unknown[]
   bundled?: string[]
   unbundled?: string[]

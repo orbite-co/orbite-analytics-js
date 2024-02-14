@@ -20,7 +20,7 @@
     "@internal/config": "workspace:^",
     "@internal/test-helpers": "workspace:^",
     "@playwright/test": "^1.28.1",
-    "@segment/analytics-next": "workspace:^",
+    "@orbite/analytics-js": "workspace:^",
     "http-server": "14.1.1",
     "tslib": "^2.4.1"
   }

@@ -225,8 +225,8 @@ export abstract class CoreEventQueue<
 
   private availableExtensions(denyList: Integrations) {
     const available = this.plugins.filter((p) => {
-      // Only filter out destination plugins or the Segment.io plugin
-      if (p.type !== 'destination' && p.name !== 'Segment.io') {
+      // Only filter out destination plugins or the Orbite plugin
+      if (p.type !== 'destination' && p.name !== 'Orbite') {
         return true
       }
 
@@ -237,11 +237,11 @@ export abstract class CoreEventQueue<
         }
       })
 
-      // Explicit integration option takes precedence, `All: false` does not apply to Segment.io
+      // Explicit integration option takes precedence, `All: false` does not apply to Orbite
       return (
         denyList[p.name] ??
         alternativeNameMatch ??
-        (p.name === 'Segment.io' ? true : denyList.All) !== false
+        (p.name === 'Orbite' ? true : denyList.All) !== false
       )
     })
 

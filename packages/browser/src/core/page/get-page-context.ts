@@ -1,7 +1,7 @@
-import { isPlainObject } from '@segment/analytics-core'
+import { isPlainObject } from '@orbite/analytics-core'
 
 /**
- * Final Page Context object expected in the Segment Event context
+ * Final Page Context object expected in the Event context
  */
 export interface PageContext {
   path: string

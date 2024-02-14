@@ -4,7 +4,7 @@ export const snippet = (writeKey: string, load: boolean = true, extra = '') => `
 !(function () {
   var analytics = (window.analytics = window.analytics || [])
   if (!analytics.initialize)
-    if (analytics.invoked) window.console && console.error && console.error('Segment snippet included twice.')
+    if (analytics.invoked) window.console && console.error && console.error('Snippet included twice.')
     else {
       analytics.invoked = !0
       analytics.methods = [

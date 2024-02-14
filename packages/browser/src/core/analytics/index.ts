@@ -13,7 +13,7 @@ import {
 import type { FormArgs, LinkArgs } from '../auto-track'
 import { isOffline } from '../connection'
 import { Context } from '../context'
-import { dispatch } from '@segment/analytics-core'
+import { dispatch } from '@orbite/analytics-core'
 import { Emitter } from '@segment/analytics-generic-utils'
 import {
   Callback,
@@ -21,7 +21,7 @@ import {
   Integrations,
   Plan,
   EventProperties,
-  SegmentEvent,
+  OrbiteEvent,
 } from '../events'
 import type { Plugin } from '../plugin'
 import { EventQueue } from '../queue/event-queue'
@@ -274,7 +274,7 @@ export class Analytics
     const pageCtx = popPageContext(args)
     const [name, data, opts, cb] = resolveArguments(...args)
 
-    const segmentEvent = this.eventFactory.track(
+    const orbiteEvent = this.eventFactory.track(
       name,
       data as EventProperties,
       opts,
@@ -282,7 +282,7 @@ export class Analytics
       pageCtx
     )
 
-    return this._dispatch(segmentEvent, cb).then((ctx) => {
+    return this._dispatch(orbiteEvent, cb).then((ctx) => {
       this.emit('track', name, ctx.event.properties, ctx.event.options)
       return ctx
     })
@@ -293,7 +293,7 @@ export class Analytics
     const [category, page, properties, options, callback] =
       resolvePageArguments(...args)
 
-    const segmentEvent = this.eventFactory.page(
+    const orbiteEvent = this.eventFactory.page(
       category,
       page,
       properties,
@@ -302,7 +302,7 @@ export class Analytics
       pageCtx
     )
 
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(orbiteEvent, callback).then((ctx) => {
       this.emit('page', category, page, ctx.event.properties, ctx.event.options)
       return ctx
     })
@@ -315,7 +315,7 @@ export class Analytics
     )
 
     this._user.identify(id, _traits)
-    const segmentEvent = this.eventFactory.identify(
+    const orbiteEvent = this.eventFactory.identify(
       this._user.id(),
       this._user.traits(),
       options,
@@ -323,7 +323,7 @@ export class Analytics
       pageCtx
     )
 
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(orbiteEvent, callback).then((ctx) => {
       this.emit(
         'identify',
         ctx.event.userId,
@@ -350,7 +350,7 @@ export class Analytics
     const groupId = this._group.id()
     const groupTraits = this._group.traits()
 
-    const segmentEvent = this.eventFactory.group(
+    const orbiteEvent = this.eventFactory.group(
       groupId,
       groupTraits,
       options,
@@ -358,7 +358,7 @@ export class Analytics
       pageCtx
     )
 
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(orbiteEvent, callback).then((ctx) => {
       this.emit('group', ctx.event.groupId, ctx.event.traits, ctx.event.options)
       return ctx
     })
@@ -367,14 +367,14 @@ export class Analytics
   async alias(...args: AliasParams): Promise<DispatchedEvent> {
     const pageCtx = popPageContext(args)
     const [to, from, options, callback] = resolveAliasArguments(...args)
-    const segmentEvent = this.eventFactory.alias(
+    const orbiteEvent = this.eventFactory.alias(
       to,
       from,
       options,
       this.integrations,
       pageCtx
     )
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(orbiteEvent, callback).then((ctx) => {
       this.emit('alias', to, from, ctx.event.options)
       return ctx
     })
@@ -385,7 +385,7 @@ export class Analytics
     const [category, page, properties, options, callback] =
       resolvePageArguments(...args)
 
-    const segmentEvent = this.eventFactory.screen(
+    const orbiteEvent = this.eventFactory.screen(
       category,
       page,
       properties,
@@ -393,7 +393,7 @@ export class Analytics
       this.integrations,
       pageCtx
     )
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(orbiteEvent, callback).then((ctx) => {
       this.emit(
         'screen',
         category,
@@ -481,7 +481,7 @@ export class Analytics
   }
 
   private async _dispatch(
-    event: SegmentEvent,
+    event: OrbiteEvent,
     callback?: Callback
   ): Promise<DispatchedEvent> {
     const ctx = new Context(event)
@@ -577,7 +577,7 @@ export class Analytics
     return this
   }
 
-  normalize(msg: SegmentEvent): SegmentEvent {
+  normalize(msg: OrbiteEvent): OrbiteEvent {
     console.warn(deprecationWarning)
     return this.eventFactory.normalize(msg)
   }

@@ -1,4 +1,4 @@
-import type { CorePlugin } from '@segment/analytics-core'
+import type { CorePlugin } from '@orbite/analytics-core'
 import type { DestinationMiddlewareFunction } from '../../plugins/middleware'
 import type { Analytics } from '../analytics'
 import type { Context } from '../context'

@@ -24,9 +24,9 @@
     "update-versions-and-changelogs": "changeset version && yarn version-run-all && bash scripts/update-lockfile.sh",
     "release": "yarn clean && yarn build --force && changeset publish && git push origin HEAD:master --follow-tags --no-verify",
     "version-run-all": "yarn workspaces foreach -vpt --no-private run version",
-    "core": "yarn workspace @segment/analytics-core",
-    "browser": "yarn workspace @segment/analytics-next",
-    "node": "yarn workspace @segment/analytics-node",
+    "core": "yarn workspace @orbite/analytics-core",
+    "browser": "yarn workspace @orbite/analytics-js",
+    "node": "yarn workspace @orbite/analytics-node",
     "scripts": "yarn workspace @internal/scripts",
     "clean": "bash scripts/clean.sh",
     "turbo": "turbo"
@@ -65,8 +65,8 @@
     "webpack-dev-server": "^4.15.1"
   },
   "resolutions": {
-    "@segment/analytics-next": "workspace:*",
-    "@segment/analytics-node": "workspace:*",
-    "@segment/analytics-core": "workspace:*"
+    "@orbite/analytics-js": "workspace:*",
+    "@orbite/analytics-node": "workspace:*",
+    "@orbite/analytics-core": "workspace:*"
   }
 }

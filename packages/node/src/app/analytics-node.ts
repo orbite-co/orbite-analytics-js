@@ -1,7 +1,7 @@
-import { CoreAnalytics, bindAll, pTimeout } from '@segment/analytics-core'
+import { CoreAnalytics, bindAll, pTimeout } from '@orbite/analytics-core'
 import { AnalyticsSettings, validateSettings } from './settings'
 import { version } from '../generated/version'
-import { createConfiguredNodePlugin } from '../plugins/segmentio'
+import { createConfiguredNodePlugin } from '../plugins/orbite'
 import { NodeEventFactory } from './event-factory'
 import { Callback, dispatchAndEmit } from './dispatch-emit'
 import { NodeEmitter } from './emitter'
@@ -12,7 +12,7 @@ import {
   PageParams,
   TrackParams,
   Plugin,
-  SegmentEvent,
+  OrbiteEvent,
   FlushParams,
   CloseAndFlushParams,
 } from './types'
@@ -124,15 +124,15 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     return timeout ? pTimeout(promise, timeout).catch(() => undefined) : promise
   }
 
-  private _dispatch(segmentEvent: SegmentEvent, callback?: Callback) {
+  private _dispatch(orbiteEvent: OrbiteEvent, callback?: Callback) {
     if (this._isClosed) {
-      this.emit('call_after_close', segmentEvent as SegmentEvent)
+      this.emit('call_after_close', orbiteEvent as OrbiteEvent)
       return undefined
     }
 
     this._pendingEvents++
 
-    dispatchAndEmit(segmentEvent, this._queue, this, callback)
+    dispatchAndEmit(orbiteEvent, this._queue, this, callback)
       .catch((ctx) => ctx)
       .finally(() => {
         this._pendingEvents--
@@ -151,12 +151,12 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     { userId, previousId, context, timestamp, integrations }: AliasParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.alias(userId, previousId, {
+    const orbiteEvent = this._eventFactory.alias(userId, previousId, {
       context,
       integrations,
       timestamp,
     })
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(orbiteEvent, callback)
   }
 
   /**
@@ -175,7 +175,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: GroupParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.group(groupId, traits, {
+    const orbiteEvent = this._eventFactory.group(groupId, traits, {
       context,
       anonymousId,
       userId,
@@ -183,7 +183,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       integrations,
     })
 
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(orbiteEvent, callback)
   }
 
   /**
@@ -201,14 +201,14 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: IdentifyParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.identify(userId, traits, {
+    const orbiteEvent = this._eventFactory.identify(userId, traits, {
       context,
       anonymousId,
       userId,
       timestamp,
       integrations,
     })
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(orbiteEvent, callback)
   }
 
   /**
@@ -228,13 +228,13 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: PageParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.page(
+    const orbiteEvent = this._eventFactory.page(
       category ?? null,
       name ?? null,
       properties,
       { context, anonymousId, userId, timestamp, integrations }
     )
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(orbiteEvent, callback)
   }
 
   /**
@@ -256,14 +256,14 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: PageParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.screen(
+    const orbiteEvent = this._eventFactory.screen(
       category ?? null,
       name ?? null,
       properties,
       { context, anonymousId, userId, timestamp, integrations }
     )
 
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(orbiteEvent, callback)
   }
 
   /**
@@ -282,7 +282,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: TrackParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.track(event, properties, {
+    const orbiteEvent = this._eventFactory.track(event, properties, {
       context,
       userId,
       anonymousId,
@@ -290,7 +290,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       integrations,
     })
 
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(orbiteEvent, callback)
   }
 
   /**

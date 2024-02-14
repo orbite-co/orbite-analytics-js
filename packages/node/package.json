@@ -1,5 +1,5 @@
 {
-  "name": "@segment/analytics-node",
+  "name": "@orbite/analytics-node",
   "version": "2.0.0",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@lukeed/uuid": "^2.0.0",
-    "@segment/analytics-core": "1.4.1",
+    "@orbite/analytics-core": "1.4.1",
     "@segment/analytics-generic-utils": "1.1.1",
     "buffer": "^6.0.3",
     "jose": "^5.1.0",

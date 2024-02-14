@@ -6,7 +6,7 @@ import {
   Integrations,
   EventProperties,
   Traits,
-  SegmentEvent,
+  OrbiteEvent,
 } from './interfaces'
 import md5 from 'spark-md5'
 import { addPageContext, PageContext } from '../page'
@@ -22,7 +22,7 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
+  ): OrbiteEvent {
     return this.normalize(
       {
         ...this.baseEvent(),
@@ -43,8 +43,8 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
-    const event: Partial<SegmentEvent> = {
+  ): OrbiteEvent {
+    const event: Partial<OrbiteEvent> = {
       type: 'page' as const,
       properties: { ...properties },
       options: { ...options },
@@ -65,7 +65,7 @@ export class EventFactory {
       {
         ...this.baseEvent(),
         ...event,
-      } as SegmentEvent,
+      } as OrbiteEvent,
       pageCtx
     )
   }
@@ -77,8 +77,8 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
-    const event: Partial<SegmentEvent> = {
+  ): OrbiteEvent {
+    const event: Partial<OrbiteEvent> = {
       type: 'screen' as const,
       properties: { ...properties },
       options: { ...options },
@@ -96,7 +96,7 @@ export class EventFactory {
       {
         ...this.baseEvent(),
         ...event,
-      } as SegmentEvent,
+      } as OrbiteEvent,
       pageCtx
     )
   }
@@ -107,7 +107,7 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
+  ): OrbiteEvent {
     return this.normalize(
       {
         ...this.baseEvent(),
@@ -127,7 +127,7 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
+  ): OrbiteEvent {
     return this.normalize(
       {
         ...this.baseEvent(),
@@ -147,8 +147,8 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
-    const base: Partial<SegmentEvent> = {
+  ): OrbiteEvent {
+    const base: Partial<OrbiteEvent> = {
       userId: to,
       type: 'alias' as const,
       options: { ...options },
@@ -163,20 +163,20 @@ export class EventFactory {
       return this.normalize({
         ...base,
         ...this.baseEvent(),
-      } as SegmentEvent)
+      } as OrbiteEvent)
     }
 
     return this.normalize(
       {
         ...this.baseEvent(),
         ...base,
-      } as SegmentEvent,
+      } as OrbiteEvent,
       pageCtx
     )
   }
 
-  private baseEvent(): Partial<SegmentEvent> {
-    const base: Partial<SegmentEvent> = {
+  private baseEvent(): Partial<OrbiteEvent> {
+    const base: Partial<OrbiteEvent> = {
       integrations: {},
       options: {},
     }
@@ -198,7 +198,7 @@ export class EventFactory {
    * Builds the context part of an event based on "foreign" keys that
    * are provided in the `Options` parameter for an Event
    */
-  private context(event: SegmentEvent): [object, object] {
+  private context(event: OrbiteEvent): [object, object] {
     const optionsKeys = ['integrations', 'anonymousId', 'timestamp', 'userId']
 
     const options = event.options ?? {}
@@ -224,7 +224,7 @@ export class EventFactory {
     return [context, overrides]
   }
 
-  public normalize(event: SegmentEvent, pageCtx?: PageContext): SegmentEvent {
+  public normalize(event: OrbiteEvent, pageCtx?: PageContext): OrbiteEvent {
     // set anonymousId globally if we encounter an override
     //segment.com/docs/connections/sources/catalog/libraries/website/javascript/identity/#override-the-anonymous-id-using-the-options-object
     event.options?.anonymousId &&
@@ -255,7 +255,7 @@ export class EventFactory {
     const [context, overrides] = this.context(event)
     const { options, ...rest } = event
 
-    const newEvent: SegmentEvent = {
+    const newEvent: OrbiteEvent = {
       timestamp: new Date(),
       ...rest,
       context,

@@ -8,13 +8,13 @@ import {
   Screen,
   Track,
 } from '@segment/facade'
-import { SegmentEvent } from '../core/events'
+import { OrbiteEvent } from '../core/events'
 
-export type SegmentFacade = Facade<SegmentEvent> & {
-  obj: SegmentEvent
+export type OrbiteFacade = Facade<OrbiteEvent> & {
+  obj: OrbiteEvent
 }
 
-export function toFacade(evt: SegmentEvent, options?: Options): SegmentFacade {
+export function toFacade(evt: OrbiteEvent, options?: Options): OrbiteFacade {
   let fcd = new Facade(evt, options)
 
   if (evt.type === 'track') {
@@ -46,5 +46,5 @@ export function toFacade(evt: SegmentEvent, options?: Options): SegmentFacade {
     writable: true,
   })
 
-  return fcd as SegmentFacade
+  return fcd as OrbiteFacade
 }

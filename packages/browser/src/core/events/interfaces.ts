@@ -1,6 +1,6 @@
 import {
   CoreOptions,
-  CoreSegmentEvent,
+  CoreOrbiteEvent,
   Callback,
   Integrations,
   Plan,
@@ -13,7 +13,7 @@ import {
   GroupTraits,
   UserTraits,
   Traits,
-} from '@segment/analytics-core'
+} from '@orbite/analytics-core'
 
 export interface Options extends CoreOptions {}
 
@@ -21,7 +21,7 @@ export type { GroupTraits, UserTraits, Traits }
 
 export type EventProperties = Record<string, any>
 
-export interface SegmentEvent extends CoreSegmentEvent {}
+export interface OrbiteEvent extends CoreOrbiteEvent {}
 
 export type {
   Integrations,

@@ -11,7 +11,7 @@ const writeKey = 'foo'
 
 describe('Inspector', () => {
   beforeEach(() => {
-    Object.assign(((window as any)['__SEGMENT_INSPECTOR__'] ??= {}), {
+    Object.assign(((window as any)['__INSPECTOR__'] ??= {}), {
       attach: jest.fn(),
     })
   })
@@ -22,7 +22,7 @@ describe('Inspector', () => {
     })
 
     expect(
-      ((window as any)['__SEGMENT_INSPECTOR__'] as any).attach
+      ((window as any)['__INSPECTOR__'] as any).attach
     ).toHaveBeenCalledWith(analytics)
   })
 

@@ -4,15 +4,15 @@ import {
   ContextFailedDelivery,
   SerializedContext,
   CancelationOptions,
-} from '@segment/analytics-core'
-import { SegmentEvent } from '../events/interfaces'
+} from '@orbite/analytics-core'
+import { OrbiteEvent } from '../events/interfaces'
 import { Stats } from '../stats'
 
-export class Context extends CoreContext<SegmentEvent> {
+export class Context extends CoreContext<OrbiteEvent> {
   static override system() {
     return new this({ type: 'track', event: 'system' })
   }
-  constructor(event: SegmentEvent, id?: string) {
+  constructor(event: OrbiteEvent, id?: string) {
     super(event, id, new Stats())
   }
 }

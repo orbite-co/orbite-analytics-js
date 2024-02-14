@@ -15,7 +15,7 @@ const cdnResponse: LegacySettings = {
     Amplitude: {
       type: 'browser',
     },
-    Segmentio: {
+    Orbite: {
       type: 'browser',
     },
     Iterable: {
@@ -32,7 +32,7 @@ jest.mock('unfetch', () => {
 })
 
 describe('standalone bundle', () => {
-  const segmentDotCom = `foo`
+  const mockObj = `foo`
 
   let jsd: JSDOM
   let windowSpy: jest.SpyInstance
@@ -53,7 +53,7 @@ describe('standalone bundle', () => {
     <!DOCTYPE html>
       <head>
         <script>
-          ${snippet(segmentDotCom, true)}
+          ${snippet(mockObj, true)}
         </script>
       </head>
       <body>
@@ -65,7 +65,7 @@ describe('standalone bundle', () => {
     jsd = new JSDOM(html, {
       runScripts: 'dangerously',
       resources: 'usable',
-      url: 'https://segment.com',
+      url: 'http://localhost:3000',
       virtualConsole,
     })
 

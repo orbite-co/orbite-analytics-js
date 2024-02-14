@@ -398,9 +398,9 @@ describe('Flushing', () => {
       },
     }
 
-    const segmentio = {
+    const orbite = {
       ...testPlugin,
-      name: 'Segment.io',
+      name: 'Orbite',
       type: 'after' as const,
       track: (ctx: TestCtx): Promise<TestCtx> | TestCtx => {
         return Promise.resolve(ctx)
@@ -412,7 +412,7 @@ describe('Flushing', () => {
 
       jest.spyOn(amplitude, 'track')
       jest.spyOn(mixPanel, 'track')
-      jest.spyOn(segmentio, 'track')
+      jest.spyOn(orbite, 'track')
 
       const evt = {
         type: 'track' as const,
@@ -426,7 +426,7 @@ describe('Flushing', () => {
 
       await eq.register(TestCtx.system(), amplitude, ajs)
       await eq.register(TestCtx.system(), mixPanel, ajs)
-      await eq.register(TestCtx.system(), segmentio, ajs)
+      await eq.register(TestCtx.system(), orbite, ajs)
 
       eq.dispatch(ctx)
 
@@ -438,7 +438,7 @@ describe('Flushing', () => {
 
       expect(mixPanel.track).not.toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
-      expect(segmentio.track).not.toHaveBeenCalled()
+      expect(orbite.track).not.toHaveBeenCalled()
     })
 
     test('does not deliver to any destination except Segment.io if All: false ', async () => {
@@ -446,7 +446,7 @@ describe('Flushing', () => {
 
       jest.spyOn(amplitude, 'track')
       jest.spyOn(mixPanel, 'track')
-      jest.spyOn(segmentio, 'track')
+      jest.spyOn(orbite, 'track')
 
       const evt = {
         type: 'track' as const,
@@ -459,7 +459,7 @@ describe('Flushing', () => {
 
       await eq.register(TestCtx.system(), amplitude, ajs)
       await eq.register(TestCtx.system(), mixPanel, ajs)
-      await eq.register(TestCtx.system(), segmentio, ajs)
+      await eq.register(TestCtx.system(), orbite, ajs)
 
       eq.dispatch(ctx)
 
@@ -470,7 +470,7 @@ describe('Flushing', () => {
 
       expect(mixPanel.track).not.toHaveBeenCalled()
       expect(amplitude.track).not.toHaveBeenCalled()
-      expect(segmentio.track).toHaveBeenCalled()
+      expect(orbite.track).toHaveBeenCalled()
     })
 
     test('does not deliver when All: false and destination is also explicitly false', async () => {
@@ -478,7 +478,7 @@ describe('Flushing', () => {
 
       jest.spyOn(amplitude, 'track')
       jest.spyOn(mixPanel, 'track')
-      jest.spyOn(segmentio, 'track')
+      jest.spyOn(orbite, 'track')
 
       const evt = {
         type: 'track' as const,
@@ -493,7 +493,7 @@ describe('Flushing', () => {
 
       await eq.register(TestCtx.system(), amplitude, ajs)
       await eq.register(TestCtx.system(), mixPanel, ajs)
-      await eq.register(TestCtx.system(), segmentio, ajs)
+      await eq.register(TestCtx.system(), orbite, ajs)
 
       eq.dispatch(ctx)
 
@@ -504,7 +504,7 @@ describe('Flushing', () => {
 
       expect(mixPanel.track).not.toHaveBeenCalled()
       expect(amplitude.track).not.toHaveBeenCalled()
-      expect(segmentio.track).not.toHaveBeenCalled()
+      expect(orbite.track).not.toHaveBeenCalled()
     })
 
     test('delivers to destinations if All: false but the destination is allowed', async () => {
@@ -512,7 +512,7 @@ describe('Flushing', () => {
 
       jest.spyOn(amplitude, 'track')
       jest.spyOn(mixPanel, 'track')
-      jest.spyOn(segmentio, 'track')
+      jest.spyOn(orbite, 'track')
 
       const evt = {
         type: 'track' as const,
@@ -527,7 +527,7 @@ describe('Flushing', () => {
 
       await eq.register(TestCtx.system(), amplitude, ajs)
       await eq.register(TestCtx.system(), mixPanel, ajs)
-      await eq.register(TestCtx.system(), segmentio, ajs)
+      await eq.register(TestCtx.system(), orbite, ajs)
 
       eq.dispatch(ctx)
 
@@ -538,7 +538,7 @@ describe('Flushing', () => {
 
       expect(mixPanel.track).not.toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
-      expect(segmentio.track).toHaveBeenCalled()
+      expect(orbite.track).toHaveBeenCalled()
     })
 
     test('delivers to Segment.io if All: false but Segment.io is not specified', async () => {
@@ -546,7 +546,7 @@ describe('Flushing', () => {
 
       jest.spyOn(amplitude, 'track')
       jest.spyOn(mixPanel, 'track')
-      jest.spyOn(segmentio, 'track')
+      jest.spyOn(orbite, 'track')
 
       const evt = {
         type: 'track' as const,
@@ -560,7 +560,7 @@ describe('Flushing', () => {
 
       await eq.register(TestCtx.system(), amplitude, ajs)
       await eq.register(TestCtx.system(), mixPanel, ajs)
-      await eq.register(TestCtx.system(), segmentio, ajs)
+      await eq.register(TestCtx.system(), orbite, ajs)
 
       eq.dispatch(ctx)
 
@@ -571,14 +571,14 @@ describe('Flushing', () => {
 
       expect(mixPanel.track).not.toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
-      expect(segmentio.track).toHaveBeenCalled()
+      expect(orbite.track).toHaveBeenCalled()
     })
 
     test('delivers to destinations that exist as an object', async () => {
       const eq = new TestEventQueue()
 
       jest.spyOn(amplitude, 'track')
-      jest.spyOn(segmentio, 'track')
+      jest.spyOn(orbite, 'track')
 
       const evt = {
         type: 'track' as const,
@@ -594,7 +594,7 @@ describe('Flushing', () => {
       const ctx = new TestCtx(evt)
 
       await eq.register(TestCtx.system(), amplitude, ajs)
-      await eq.register(TestCtx.system(), segmentio, ajs)
+      await eq.register(TestCtx.system(), orbite, ajs)
 
       eq.dispatch(ctx)
 
@@ -604,7 +604,7 @@ describe('Flushing', () => {
       expect(flushed).toEqual([ctx])
 
       expect(amplitude.track).toHaveBeenCalled()
-      expect(segmentio.track).toHaveBeenCalled()
+      expect(orbite.track).toHaveBeenCalled()
     })
   })
 })

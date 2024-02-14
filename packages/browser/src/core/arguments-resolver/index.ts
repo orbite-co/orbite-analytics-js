@@ -3,14 +3,14 @@ import {
   isPlainObject,
   isString,
   isNumber,
-} from '@segment/analytics-core'
+} from '@orbite/analytics-core'
 import { Context } from '../context'
 import {
   Callback,
   JSONObject,
   Options,
   EventProperties,
-  SegmentEvent,
+  OrbiteEvent,
   Traits,
   GroupTraits,
   UserTraits,
@@ -21,7 +21,7 @@ import { ID, User } from '../user'
  * Helper for the track method
  */
 export function resolveArguments(
-  eventName: string | SegmentEvent,
+  eventName: string | OrbiteEvent,
   properties?: EventProperties | Callback,
   options?: Options | Callback,
   callback?: Callback

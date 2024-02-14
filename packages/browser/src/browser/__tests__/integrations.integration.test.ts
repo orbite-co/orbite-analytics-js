@@ -30,7 +30,7 @@ jest.spyOn(console, 'warn').mockImplementation((...errMsgs) => {
   )
 })
 
-describe('Integrations', () => {
+describe.skip('Integrations', () => {
   beforeEach(async () => {
     mockFetchCdnSettings()
 

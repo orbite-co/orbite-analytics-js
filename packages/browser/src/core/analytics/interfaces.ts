@@ -9,10 +9,10 @@ import type {
   GroupParams,
 } from '../arguments-resolver'
 import type { Context } from '../context'
-import type { SegmentEvent } from '../events'
+import type { OrbiteEvent } from '../events'
 import type { Group, User } from '../user'
 import type { LegacyIntegration } from '../../plugins/ajs-destination/types'
-import { CoreAnalytics } from '@segment/analytics-core'
+import { CoreAnalytics } from '@orbite/analytics-core'
 
 // we can define a contract because:
 // - it gives us a neat place to put all our typedocs (they end up being inherited by the class that implements them).
@@ -58,7 +58,7 @@ export interface AnalyticsClassic extends AnalyticsClassicStubs {
   noConflict(): Analytics
 
   /** @deprecated */
-  normalize(msg: SegmentEvent): SegmentEvent
+  normalize(msg: OrbiteEvent): OrbiteEvent
 
   /** @deprecated */
   readonly failedInitializations: string[]

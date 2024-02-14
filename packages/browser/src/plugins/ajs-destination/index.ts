@@ -6,7 +6,7 @@ import { isOffline, isOnline } from '../../core/connection'
 import { Context, ContextCancelation } from '../../core/context'
 import { isServer } from '../../core/environment'
 import { DestinationPlugin, Plugin } from '../../core/plugin'
-import { attempt } from '@segment/analytics-core'
+import { attempt } from '@orbite/analytics-core'
 import { isPlanEventEnabled } from '../../lib/is-plan-event-enabled'
 import { mergedOptions } from '../../lib/merged-options'
 import { pWhile } from '../../lib/p-while'
@@ -24,7 +24,7 @@ import {
   unloadIntegration,
 } from './loader'
 import { LegacyIntegration, ClassicIntegrationSource } from './types'
-import { isPlainObject } from '@segment/analytics-core'
+import { isPlainObject } from '@orbite/analytics-core'
 import {
   isDisabledIntegration as shouldSkipIntegration,
   isInstallableIntegration,
@@ -206,14 +206,14 @@ export class LegacyDestination implements DestinationPlugin {
     const plan = this.options?.plan?.track
     const ev = ctx.event.event
 
-    if (plan && ev && this.name !== 'Segment.io') {
+    if (plan && ev && this.name !== 'Orbite') {
       // events are always sent to segment (legacy behavior)
       const planEvent = plan[ev]
       if (!isPlanEventEnabled(plan, planEvent)) {
         ctx.updateEvent('integrations', {
           ...ctx.event.integrations,
           All: false,
-          'Segment.io': true,
+          'Orbite': true,
         })
         ctx.cancel(
           new ContextCancelation({

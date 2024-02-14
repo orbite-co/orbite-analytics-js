@@ -16,7 +16,7 @@ function withTag(tag: string) {
   const jsd = new JSDOM(html, {
     runScripts: 'dangerously',
     resources: 'usable',
-    url: 'https://segment.com',
+    url: 'http://localhost:3000',
     virtualConsole,
   })
 
@@ -40,16 +40,16 @@ beforeEach(async () => {
   jest.resetAllMocks()
 })
 
-it('detects the existing segment cdn', () => {
+it('detects the existing cdn', () => {
   withTag(`
-    <script src="https://cdn.segment.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
+    <script src="https://cdp.orbite.co/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
   `)
-  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.segment.com"`)
+  expect(getCDN()).toMatchInlineSnapshot(`"https://cdp.orbite.co"`)
 })
 
 it('should return the overridden cdn if window.analytics._cdn is mutated', () => {
   withTag(`
-  <script src="https://cdn.segment.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
+  <script src="https://cdp.orbite.co/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
   `)
   // @ts-ignore
   ;(window.analytics as any) = {
@@ -63,9 +63,9 @@ it('if analytics is not loaded yet, should still return cdn', () => {
   // @ts-ignore
   window.analytics = undefined as any
   withTag(`
-  <script src="https://cdn.segment.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
+  <script src="https://cdp.orbite.co/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
   `)
-  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.segment.com"`)
+  expect(getCDN()).toMatchInlineSnapshot(`"https://cdp.orbite.co"`)
 })
 
 it('detects custom cdns that match Segment in domain instrumentation patterns', () => {
@@ -79,10 +79,10 @@ it('falls back to Segment if CDN is used as a proxy', () => {
   withTag(`
     <script src="https://my.cdn.proxy/custom-analytics.min.js" />
   `)
-  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.segment.com"`)
+  expect(getCDN()).toMatchInlineSnapshot(`"https://cdp.orbite.co"`)
 })
 
 it('falls back to Segment if the script is not at all present on the page', () => {
   withTag('')
-  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.segment.com"`)
+  expect(getCDN()).toMatchInlineSnapshot(`"https://cdp.orbite.co"`)
 })

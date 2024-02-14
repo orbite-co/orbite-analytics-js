@@ -1,7 +1,7 @@
-import { CoreSegmentEvent } from '../../events'
+import { CoreOrbiteEvent } from '../../events'
 import { validateEvent } from '../assertions'
 
-const baseEvent: Partial<CoreSegmentEvent> = {
+const baseEvent: Partial<CoreOrbiteEvent> = {
   userId: 'foo',
   event: 'Test Event',
 }

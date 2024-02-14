@@ -1,6 +1,6 @@
 import { abortSignalAfterTimeout } from '../abort'
 import nock from 'nock'
-import { sleep } from '@segment/analytics-core'
+import { sleep } from '@orbite/analytics-core'
 import { fetch as _fetch } from '../fetch'
 
 const fetch = _fetch as typeof globalThis.fetch

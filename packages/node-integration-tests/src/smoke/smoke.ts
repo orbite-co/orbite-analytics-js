@@ -1,5 +1,5 @@
-import { default as AnalyticsDefaultImport } from '@segment/analytics-node'
-import { Analytics as AnalyticsNamedImport } from '@segment/analytics-node'
+import { default as AnalyticsDefaultImport } from '@orbite/analytics-node'
+import { Analytics as AnalyticsNamedImport } from '@orbite/analytics-node'
 
 {
   // test named imports vs default imports

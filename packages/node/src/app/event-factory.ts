@@ -1,16 +1,16 @@
-import { EventFactory } from '@segment/analytics-core'
+import { EventFactory } from '@orbite/analytics-core'
 import { createMessageId } from '../lib/get-message-id'
-import { SegmentEvent } from './types'
+import { OrbiteEvent } from './types'
 
-// use declaration merging to downcast CoreSegmentEvent without adding any runtime code.
+// use declaration merging to downcast CoreOrbiteEvent without adding any runtime code.
 // if/when we decide to add an actual implementation to NodeEventFactory that actually changes the event shape, we can remove this.
 export interface NodeEventFactory {
-  alias(...args: Parameters<EventFactory['alias']>): SegmentEvent
-  group(...args: Parameters<EventFactory['group']>): SegmentEvent
-  identify(...args: Parameters<EventFactory['identify']>): SegmentEvent
-  track(...args: Parameters<EventFactory['track']>): SegmentEvent
-  page(...args: Parameters<EventFactory['page']>): SegmentEvent
-  screen(...args: Parameters<EventFactory['screen']>): SegmentEvent
+  alias(...args: Parameters<EventFactory['alias']>): OrbiteEvent
+  group(...args: Parameters<EventFactory['group']>): OrbiteEvent
+  identify(...args: Parameters<EventFactory['identify']>): OrbiteEvent
+  track(...args: Parameters<EventFactory['track']>): OrbiteEvent
+  page(...args: Parameters<EventFactory['page']>): OrbiteEvent
+  screen(...args: Parameters<EventFactory['screen']>): OrbiteEvent
 }
 
 export class NodeEventFactory extends EventFactory {

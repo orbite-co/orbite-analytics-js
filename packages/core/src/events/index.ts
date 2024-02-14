@@ -4,7 +4,7 @@ import { ID, User } from '../user'
 import {
   Integrations,
   EventProperties,
-  CoreSegmentEvent,
+  CoreOrbiteEvent,
   CoreOptions,
   CoreExtraContext,
   UserTraits,
@@ -50,8 +50,8 @@ export class EventFactory {
     properties?: EventProperties,
     options?: CoreOptions,
     globalIntegrations?: Integrations
-  ): CoreSegmentEvent {
-    const event: CoreSegmentEvent = {
+  ): CoreOrbiteEvent {
+    const event: CoreOrbiteEvent = {
       type: 'page',
       properties: { ...properties },
       options: { ...options },
@@ -80,8 +80,8 @@ export class EventFactory {
     properties?: EventProperties,
     options?: CoreOptions,
     globalIntegrations?: Integrations
-  ): CoreSegmentEvent {
-    const event: CoreSegmentEvent = {
+  ): CoreOrbiteEvent {
+    const event: CoreOrbiteEvent = {
       type: 'screen',
       properties: { ...properties },
       options: { ...options },
@@ -107,7 +107,7 @@ export class EventFactory {
     traits?: UserTraits,
     options?: CoreOptions,
     globalIntegrations?: Integrations
-  ): CoreSegmentEvent {
+  ): CoreOrbiteEvent {
     return this.normalize({
       ...this.baseEvent(),
       type: 'identify',
@@ -123,7 +123,7 @@ export class EventFactory {
     traits?: GroupTraits,
     options?: CoreOptions,
     globalIntegrations?: Integrations
-  ): CoreSegmentEvent {
+  ): CoreOrbiteEvent {
     return this.normalize({
       ...this.baseEvent(),
       type: 'group',
@@ -139,8 +139,8 @@ export class EventFactory {
     from: string | null, // TODO: can we make this undefined?
     options?: CoreOptions,
     globalIntegrations?: Integrations
-  ): CoreSegmentEvent {
-    const base: CoreSegmentEvent = {
+  ): CoreOrbiteEvent {
+    const base: CoreOrbiteEvent = {
       userId: to,
       type: 'alias',
       options: { ...options },
@@ -164,8 +164,8 @@ export class EventFactory {
     })
   }
 
-  private baseEvent(): Partial<CoreSegmentEvent> {
-    const base: Partial<CoreSegmentEvent> = {
+  private baseEvent(): Partial<CoreOrbiteEvent> {
+    const base: Partial<CoreOrbiteEvent> = {
       integrations: {},
       options: {},
     }
@@ -191,7 +191,7 @@ export class EventFactory {
    */
   private context(
     options: CoreOptions
-  ): [CoreExtraContext, Partial<CoreSegmentEvent>] {
+  ): [CoreExtraContext, Partial<CoreOrbiteEvent>] {
     type CoreOptionKeys = keyof RemoveIndexSignature<CoreOptions>
     /**
      * If the event options are known keys from this list, we move them to the top level of the event.
@@ -227,7 +227,7 @@ export class EventFactory {
     return [context, eventOverrides]
   }
 
-  public normalize(event: CoreSegmentEvent): CoreSegmentEvent {
+  public normalize(event: CoreOrbiteEvent): CoreOrbiteEvent {
     const integrationBooleans = Object.keys(event.integrations ?? {}).reduce(
       (integrationNames, name) => {
         return {
@@ -269,7 +269,7 @@ export class EventFactory {
       ...overrides,
     }
 
-    const evt: CoreSegmentEvent = {
+    const evt: CoreOrbiteEvent = {
       ...body,
       messageId: this.createMessageId(),
     }

@@ -5,7 +5,7 @@ import type {
   EventProperties,
   Integrations,
   Timestamp,
-} from '@segment/analytics-core'
+} from '@orbite/analytics-core'
 
 export type { GroupTraits, UserTraits }
 

@@ -12,8 +12,8 @@ if (process.env.ASSET_PATH) {
 
     // @ts-ignore
     __webpack_public_path__ = cdn
-      ? cdn + '/analytics-next/bundles/'
-      : 'https://cdn.segment.com/analytics-next/bundles/'
+      ? cdn + '/cdp/analytics-js/'
+      : 'https://cdp.orbite.co/analytics-js/'
   }
 }
 

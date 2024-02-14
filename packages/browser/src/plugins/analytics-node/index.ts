@@ -1,6 +1,6 @@
 import { Plugin } from '../../core/plugin'
 import { Context } from '../../core/context'
-import { SegmentEvent } from '../../core/events'
+import { OrbiteEvent } from '../../core/events'
 import fetch from 'node-fetch'
 import { version } from '../../generated/version'
 
@@ -14,10 +14,10 @@ interface AnalyticsNodeSettings {
 const btoa = (val: string): string => Buffer.from(val).toString('base64')
 
 export async function post(
-  event: SegmentEvent,
+  event: OrbiteEvent,
   writeKey: string
-): Promise<SegmentEvent> {
-  const res = await fetch(`https://api.segment.io/v1/${event.type}`, {
+): Promise<OrbiteEvent> {
+  const res = await fetch(`https://cdp.orbite.co/v1/${event.type}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

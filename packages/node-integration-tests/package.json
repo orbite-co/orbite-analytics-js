@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@segment/analytics-node...",
+    ".": "yarn run -T turbo run --filter=@orbite/analytics-node...",
     "tsc": "yarn run -T tsc",
     "eslint": "yarn run -T eslint",
     "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
@@ -18,7 +18,7 @@
     "@cloudflare/workers-types": "^4.20231002.0",
     "@internal/config": "workspace:^",
     "@internal/test-helpers": "workspace:^",
-    "@segment/analytics-node": "workspace:^",
+    "@orbite/analytics-node": "workspace:^",
     "@types/analytics-node": "^3.1.9",
     "@types/autocannon": "^7",
     "@types/node": "^16",

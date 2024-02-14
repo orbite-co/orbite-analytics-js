@@ -1,4 +1,4 @@
-import { sleep } from '@segment/analytics-core'
+import { sleep } from '@orbite/analytics-js'
 import { getBufferedPageCtxFixture } from '../../test-helpers/fixtures'
 import unfetch from 'unfetch'
 import { AnalyticsBrowser } from '..'
@@ -43,7 +43,7 @@ describe('Lazy initialization', () => {
     expect(fetched).toBeCalledTimes(1)
     expect(fetched).toBeCalledWith(
       expect.stringContaining(
-        'https://cdn.segment.com/v1/projects/my-write-key/settings'
+        'https://cdp.orbite.co/v1/projects/my-write-key/settings'
       )
     )
   })

@@ -95,6 +95,7 @@ module.exports = {
         // Config files and possible scripts. Allow anything, we don't really care.
         browser: true,
         node: true,
+        es6: true,
       },
       extends: [
         // Handle prettier rules through eslint https://github.com/prettier/eslint-plugin-prettier/blob/master/eslint-plugin-prettier.js#L65

@@ -1,7 +1,7 @@
 import jsdom, { JSDOM } from 'jsdom'
 import { InitOptions, getGlobalAnalytics } from '../../'
 import { AnalyticsBrowser, loadLegacySettings } from '../../browser'
-import { snippet } from '../../tester/__fixtures__/segment-snippet'
+import { snippet } from '../../tester/__fixtures__/snippet'
 import { install } from '../standalone-analytics'
 import unfetch from 'unfetch'
 import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
@@ -41,7 +41,7 @@ jest.mock('unfetch', () => {
 })
 
 describe('standalone bundle', () => {
-  const segmentDotCom = `foo`
+  const mockObj = `foo`
 
   beforeEach(async () => {
     ;(window as any).analytics = undefined
@@ -50,7 +50,7 @@ describe('standalone bundle', () => {
       <head>
         <script>
           ${snippet(
-            segmentDotCom,
+            mockObj,
             true,
             `
             window.analytics.track('fruit basket', { fruits: ['🍌', '🍇'] })
@@ -71,7 +71,7 @@ describe('standalone bundle', () => {
     const jsd = new JSDOM(html, {
       runScripts: 'dangerously',
       resources: 'usable',
-      url: 'https://segment.com',
+      url: 'http://localhost:3000',
       virtualConsole,
     })
 
@@ -120,7 +120,7 @@ describe('standalone bundle', () => {
 
     await install()
 
-    expect(spy).toHaveBeenCalledWith(segmentDotCom, {})
+    expect(spy).toHaveBeenCalledWith(mockObj, {})
   })
 
   it('derives the CDN from scripts on the page', async () => {
@@ -129,7 +129,7 @@ describe('standalone bundle', () => {
       // @ts-ignore ignore Response required fields
       .mockImplementation((): Promise<Response> => fetchSettings)
 
-    await loadLegacySettings(segmentDotCom)
+    await loadLegacySettings(mockObj)
 
     expect(unfetch).toHaveBeenCalledWith(
       'https://cdn.foo.com/v1/projects/foo/settings'
@@ -144,7 +144,7 @@ describe('standalone bundle', () => {
     const mockCdn = 'http://my-overridden-cdn.com'
 
     getGlobalAnalytics()!._cdn = mockCdn
-    await loadLegacySettings(segmentDotCom)
+    await loadLegacySettings(mockObj)
 
     expect(unfetch).toHaveBeenCalledWith(expect.stringContaining(mockCdn))
   })
@@ -169,7 +169,7 @@ describe('standalone bundle', () => {
     expect(identify).toHaveBeenCalledWith(
       'netto',
       {
-        employer: 'segment',
+        employer: 'orbite',
       },
       getBufferedPageCtxFixture()
     )
@@ -293,7 +293,7 @@ describe('standalone bundle', () => {
     expect(identify).toHaveBeenCalledWith(
       'netto',
       {
-        employer: 'segment',
+        employer: 'orbite',
       },
       getBufferedPageCtxFixture()
     )
