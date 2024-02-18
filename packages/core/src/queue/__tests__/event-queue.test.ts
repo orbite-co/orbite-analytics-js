@@ -418,7 +418,7 @@ describe('Flushing', () => {
         type: 'track' as const,
         integrations: {
           Mixpanel: false,
-          'Segment.io': false,
+          Orbite: false,
         },
       }
 
@@ -441,7 +441,7 @@ describe('Flushing', () => {
       expect(orbite.track).not.toHaveBeenCalled()
     })
 
-    test('does not deliver to any destination except Segment.io if All: false ', async () => {
+    test('does not deliver to any destination except Orbite if All: false ', async () => {
       const eq = new TestEventQueue()
 
       jest.spyOn(amplitude, 'track')
@@ -485,7 +485,7 @@ describe('Flushing', () => {
         integrations: {
           All: false,
           Amplitude: false,
-          'Segment.io': false,
+          Orbite: false,
         },
       }
 
@@ -519,7 +519,7 @@ describe('Flushing', () => {
         integrations: {
           All: false,
           Amplitude: true,
-          'Segment.io': true,
+          Orbite: true,
         },
       }
 
@@ -541,7 +541,7 @@ describe('Flushing', () => {
       expect(orbite.track).toHaveBeenCalled()
     })
 
-    test('delivers to Segment.io if All: false but Segment.io is not specified', async () => {
+    test('delivers to Orbite if All: false but Orbite is not specified', async () => {
       const eq = new TestEventQueue()
 
       jest.spyOn(amplitude, 'track')
@@ -587,7 +587,7 @@ describe('Flushing', () => {
           Amplitude: {
             amplitudeKey: 'foo',
           },
-          'Segment.io': {},
+          Orbite: {},
         },
       }
 

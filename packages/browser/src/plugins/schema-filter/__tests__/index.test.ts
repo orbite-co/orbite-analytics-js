@@ -3,14 +3,14 @@ import { Analytics } from '../../../core/analytics'
 import { Context } from '../../../core/context'
 import { schemaFilter } from '..'
 import { LegacySettings } from '../../../browser'
-import { orbite, OrbiteSettings } from '../../orbitecoio'
+import { orbite, OrbiteSettings } from '../../orbite'
 
 const settings: LegacySettings = {
   integrations: {
     'Braze Web Mode (Actions)': {},
     // note that Fullstory's name here doesn't contain 'Actions'
     Fullstory: {},
-    'Orbite': {},
+    Orbite: {},
   },
   remotePlugins: [
     {

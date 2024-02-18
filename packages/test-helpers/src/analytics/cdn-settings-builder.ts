@@ -21,13 +21,13 @@ export class CDNSettingsBuilder {
   } = {}) {
     const settings = baseCDNSettings || {
       integrations: {
-        'Segment.io': {
+        Orbite: {
           apiKey: writeKey,
           unbundledIntegrations: [],
           addBundledMetadata: true,
           maybeBundledConfigIds: {},
           versionSettings: { version: '4.4.7', componentTypes: ['browser'] },
-          apiHost: 'api.segment.io/v1',
+          apiHost: 'cdp.orbite.co/v1',
         },
       },
       plan: {
@@ -37,7 +37,7 @@ export class CDNSettingsBuilder {
       },
       middlewareSettings: {} as any,
       enabledMiddleware: {},
-      metrics: { sampleRate: 0.1, host: 'api.segment.io/v1' },
+      metrics: { sampleRate: 0.1, host: 'cdp.orbite.co/v1' },
       legacyVideoPluginsEnabled: false,
       remotePlugins: [],
     }

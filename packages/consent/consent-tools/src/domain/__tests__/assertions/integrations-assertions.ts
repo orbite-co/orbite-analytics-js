@@ -28,7 +28,7 @@ export const assertIntegrationsContainOnly = (
   const integrations = Object.fromEntries(
     Object.entries(originalCDNSettings.integrations).filter(
       ([creationName]) => {
-        return [...creationNames, 'Segment.io'].includes(creationName)
+        return [...creationNames, 'Orbite'].includes(creationName)
       }
     )
   )

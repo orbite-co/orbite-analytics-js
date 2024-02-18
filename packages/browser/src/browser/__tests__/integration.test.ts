@@ -11,7 +11,7 @@ import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
 import { AnalyticsBrowser, loadLegacySettings } from '..'
 // @ts-ignore isOffline mocked dependency is accused as unused
 import { isOffline } from '../../core/connection'
-import * as SegmentPlugin from '../../plugins/segmentio'
+import * as OrbitePlugin from '../../plugins/orbite'
 import jar from 'js-cookie'
 import { PriorityQueue } from '../../lib/priority-queue'
 import { getCDN, setGlobalCDNUrl } from '../../lib/parse-cdn'
@@ -381,76 +381,76 @@ describe('Initialization', () => {
   describe('options.integrations permutations', () => {
     const settings = { writeKey }
 
-    it('does not load Segment.io if integrations.All is false and Segment.io is not listed', async () => {
+    it('does not load Orbite if integrations.All is false and Orbite is not listed', async () => {
       const options: { integrations: { [key: string]: boolean } } = {
         integrations: { All: false },
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Orbite'
       )
 
       expect(segmentio).toBeUndefined()
     })
 
-    it('does not load Segment.io if its set to false', async () => {
+    it('does not load Orbite if its set to false', async () => {
       const options: { integrations?: { [key: string]: boolean } } = {
-        integrations: { 'Segment.io': false },
+        integrations: { Orbite: false },
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Orbite'
       )
 
       expect(segmentio).toBeUndefined()
     })
 
-    it('loads Segment.io if integrations.All is false and Segment.io is listed', async () => {
+    it('loads Orbite if integrations.All is false and Orbite is listed', async () => {
       const options: { integrations: { [key: string]: boolean } } = {
-        integrations: { All: false, 'Segment.io': true },
+        integrations: { All: false, Orbite: true },
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Orbite'
       )
 
       expect(segmentio).toBeDefined()
     })
 
-    it('loads Segment.io if integrations.All is undefined', async () => {
+    it('loads Orbite if integrations.All is undefined', async () => {
       const options: { integrations: { [key: string]: boolean } } = {
-        integrations: { 'Segment.io': true },
+        integrations: { Orbite: true },
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Orbite'
       )
 
       expect(segmentio).toBeDefined()
     })
 
-    it('loads Segment.io if integrations is undefined', async () => {
+    it('loads Orbite if integrations is undefined', async () => {
       const options: { integrations?: { [key: string]: boolean } } = {
         integrations: undefined,
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Orbite'
       )
 
       expect(segmentio).toBeDefined()
     })
 
-    it('loads selected plugins when Segment.io is false', async () => {
+    it('loads selected plugins when Orbite is false', async () => {
       const options: { integrations?: { [key: string]: boolean } } = {
         integrations: {
           'Test Plugin': true,
-          'Segment.io': false,
+          Orbite: false,
         },
       }
       const analyticsResponse = await AnalyticsBrowser.load(
@@ -463,19 +463,19 @@ describe('Initialization', () => {
       )
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Orbite'
       )
 
       expect(plugin).toBeDefined()
       expect(segmentio).toBeUndefined()
     })
 
-    it('loads selected plugins when Segment.io and All are false', async () => {
+    it('loads selected plugins when Orbite and All are false', async () => {
       const options: { integrations?: { [key: string]: boolean } } = {
         integrations: {
           All: false,
           'Test Plugin': true,
-          'Segment.io': false,
+          Orbite: false,
         },
       }
       const analyticsResponse = await AnalyticsBrowser.load(
@@ -488,7 +488,7 @@ describe('Initialization', () => {
       )
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Orbite'
       )
 
       expect(plugin).toBeDefined()
@@ -504,7 +504,7 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Segment.io')
+    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
     expect(segmentio).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
@@ -527,7 +527,7 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Segment.io')
+    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
     expect(segmentio).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
@@ -543,7 +543,7 @@ describe('Dispatch', () => {
       {
         integrations: {
           Amplitude: false,
-          'Segment.io': false,
+          Orbite: false,
         },
       }
     )
@@ -553,13 +553,13 @@ describe('Dispatch', () => {
     expect(segmentSpy).not.toHaveBeenCalled()
   })
 
-  it('does dispatch events to Segment.io when All is false', async () => {
+  it('does dispatch events to Orbite when All is false', async () => {
     const [ajs] = await AnalyticsBrowser.load({
       writeKey,
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Segment.io')
+    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
     expect(segmentio).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
@@ -590,7 +590,7 @@ describe('Dispatch', () => {
       plugins: [slowPlugin],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Segment.io')
+    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
     const segmentSpy = jest.spyOn(segmentio!, 'track')
 
     await Promise.race([
@@ -988,7 +988,7 @@ describe('retries', () => {
     // @ts-ignore ignore reassining function
     loadLegacySettings = jest.fn().mockReturnValue(
       Promise.resolve({
-        integrations: { 'Segment.io': { retryQueue: false } },
+        integrations: { Orbite: { retryQueue: false } },
       })
     )
   })
@@ -1081,15 +1081,15 @@ describe('retries', () => {
   })
 })
 
-describe('Segment.io overrides', () => {
-  it('allows for overriding Segment.io settings', async () => {
-    jest.spyOn(SegmentPlugin, 'segmentio')
+describe('Orbite overrides', () => {
+  it('allows for overriding Orbite settings', async () => {
+    jest.spyOn(OrbitePlugin, 'orbite')
 
     await AnalyticsBrowser.load(
       { writeKey },
       {
         integrations: {
-          'Segment.io': {
+          Orbite: {
             apiHost: 'https://my.endpoint.com',
             anotherSettings: '👻',
           },
@@ -1097,7 +1097,7 @@ describe('Segment.io overrides', () => {
       }
     )
 
-    expect(SegmentPlugin.segmentio).toHaveBeenCalledWith(
+    expect(OrbitePlugin.orbite).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         apiHost: 'https://my.endpoint.com',

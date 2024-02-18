@@ -1,6 +1,6 @@
 import jsdom, { JSDOM } from 'jsdom'
 import { AnalyticsBrowser, LegacySettings } from '..'
-import { snippet } from '../../tester/__fixtures__/segment-snippet'
+import { snippet } from '../../tester/__fixtures__/snippet'
 import { pWhile } from '../../lib/p-while'
 import unfetch from 'unfetch'
 import { RemoteMetrics } from '../../core/stats/remote-metrics'

@@ -2,8 +2,8 @@ import jar from 'js-cookie'
 import type { Context } from '../../core/context'
 import type { Plugin } from '../../core/plugin'
 import { version } from '../../generated/version'
-import { SegmentEvent } from '../../core/events'
-import { Campaign, PluginType } from '@segment/analytics-core'
+import { OrbiteEvent } from '../../core/events'
+import { Campaign, PluginType } from '@orbite/analytics-core'
 import { getVersionType } from '../../lib/version-type'
 import { tld } from '../../core/user/tld'
 import { gracefulDecodeURIComponent } from '../../core/query-string/gracefulDecodeURIComponent'
@@ -84,7 +84,7 @@ export function ampId(): string | undefined {
 
 function referrerId(
   query: string,
-  ctx: SegmentEvent['context'],
+  ctx: OrbiteEvent['context'],
   disablePersistance: boolean
 ): void {
   const storage = new UniversalStorage<{

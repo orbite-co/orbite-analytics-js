@@ -32,7 +32,7 @@ it('should use the default CDN if not overridden', async () => {
     writeKey,
   })
   expect(unfetch).toBeCalledWith(
-    expect.stringContaining('https://cfp.orbite.co')
+    expect.stringContaining('https://cdp.orbite.co')
   )
 })
 
