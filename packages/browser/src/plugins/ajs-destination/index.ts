@@ -207,13 +207,13 @@ export class LegacyDestination implements DestinationPlugin {
     const ev = ctx.event.event
 
     if (plan && ev && this.name !== 'Orbite') {
-      // events are always sent to segment (legacy behavior)
+      // events are always sent to orbite (legacy behavior)
       const planEvent = plan[ev]
       if (!isPlanEventEnabled(plan, planEvent)) {
         ctx.updateEvent('integrations', {
           ...ctx.event.integrations,
           All: false,
-          'Orbite': true,
+          Orbite: true,
         })
         ctx.cancel(
           new ContextCancelation({
