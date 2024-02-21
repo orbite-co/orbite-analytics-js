@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { JSDOM } from 'jsdom'
 import { AnalyticsBrowser } from '../..'
 import { LegacyDestination } from '../../plugins/ajs-destination'

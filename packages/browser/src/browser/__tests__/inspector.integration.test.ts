@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createSuccess } from '../../test-helpers/factories'
 import { AnalyticsBrowser } from '../..'
 

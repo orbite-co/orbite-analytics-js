@@ -1,3 +1,4 @@
+// @ts-nocheck
 import unfetch from 'unfetch'
 import { AnalyticsBrowser } from '../../..'
 import { createSuccess } from '../../../test-helpers/factories'

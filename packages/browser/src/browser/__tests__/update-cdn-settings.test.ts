@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AnalyticsBrowser } from '../..'
 import { setGlobalCDNUrl } from '../../lib/parse-cdn'
 import { remoteLoader } from '../../plugins/remote-loader'

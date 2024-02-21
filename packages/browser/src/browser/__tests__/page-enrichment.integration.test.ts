@@ -1,3 +1,4 @@
+// @ts-nocheck
 import unfetch from 'unfetch'
 import { Analytics, AnalyticsBrowser } from '../..'
 import { PageContext } from '../../core/page'

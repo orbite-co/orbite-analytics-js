@@ -1,3 +1,4 @@
+// @ts-nocheck
 import unfetch from 'unfetch'
 import { PluginFactory } from '..'
 

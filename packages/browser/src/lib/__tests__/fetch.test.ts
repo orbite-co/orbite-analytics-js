@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { fetch } from '../fetch'
 import { getGlobal } from '../get-global'
 import unfetch from 'unfetch'

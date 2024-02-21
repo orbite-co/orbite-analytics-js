@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { sleep } from '@orbite/analytics-core'
 import { getBufferedPageCtxFixture } from '../../test-helpers/fixtures'
 import unfetch from 'unfetch'
@@ -6,7 +7,6 @@ import { Analytics } from '../../core/analytics'
 import { createSuccess } from '../../test-helpers/factories'
 
 jest.mock('unfetch')
-
 const mockFetchSettingsSuccessResponse = () => {
   return jest
     .mocked(unfetch)

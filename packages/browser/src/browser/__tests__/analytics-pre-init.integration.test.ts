@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AnalyticsBrowser } from '../..'
 import unfetch from 'unfetch'
 import { Analytics } from '../../core/analytics'

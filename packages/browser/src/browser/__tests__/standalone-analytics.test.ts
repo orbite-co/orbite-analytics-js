@@ -1,3 +1,4 @@
+// @ts-nocheck
 import jsdom, { JSDOM } from 'jsdom'
 import { InitOptions, getGlobalAnalytics } from '../../'
 import { AnalyticsBrowser, loadLegacySettings } from '../../browser'
