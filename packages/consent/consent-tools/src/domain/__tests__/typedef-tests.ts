@@ -1,7 +1,4 @@
-import type {
-  AnalyticsSnippet,
-  AnalyticsBrowser,
-} from '@orbite/analytics-js'
+import type { AnalyticsSnippet, AnalyticsBrowser } from '@orbite/analytics-js'
 import { createWrapper, AnyAnalytics } from '../../index'
 
 type Extends<T, U> = T extends U ? true : false

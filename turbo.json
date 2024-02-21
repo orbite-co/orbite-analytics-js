@@ -2,35 +2,60 @@
   "$schema": "https://turborepo.org/schema.json",
   "pipeline": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "**/tsconfig*.json",
+        "**/babel.config*",
+        "**/webpack.config*",
+        "**/*.ts",
+        "**/*.tsx",
+        "!**/__tests__/**",
+        "!src/**/test-helpers/**"
+      ],
+      "outputs": [
+        "**/dist/**",
+        ".next/**"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "test:int": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "watch": {
+      "cache": false,
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "lint": {
+      "dependsOn": [
+        "build"
+      ],
       "inputs": [
         "**/tsconfig*.json",
         "**/*.ts",
         "**/*.tsx",
-        "!**/__tests__/**"
+        "**/*.js"
       ],
-      "outputs": ["**/dist/**", ".next/**"]
-    },
-    "test": {
-      "dependsOn": ["build"]
-    },
-    "test:int": {
-      "dependsOn": ["build"]
-    },
-    "watch": {
-      "cache": false,
-      "outputs": ["dist/**"]
-    },
-    "lint": {
-      "dependsOn": ["build"],
-      "inputs": ["**/tsconfig*.json", "**/*.ts", "**/*.tsx", "**/*.js"],
       "outputs": []
     },
     "test:cloudflare-workers": {
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     },
     "test:perf-and-durability": {
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     }
   }
 }

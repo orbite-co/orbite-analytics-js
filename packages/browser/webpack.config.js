@@ -8,7 +8,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 
 const isProd = process.env.NODE_ENV === 'production'
 const ASSET_PATH = isProd
-  ? 'https://cdp.orbite.co/analytics-js/'
+  ? 'https://cdp.orbite.co/analytics-js/bundles/'
   : '/dist/umd/'
 
 const plugins = [

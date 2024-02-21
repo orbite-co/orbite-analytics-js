@@ -95,7 +95,7 @@ describe(mergedOptions, () => {
   it('works with boolean overrides', () => {
     const cdn = {
       integrations: {
-        'Orbite': { apiHost: 'cdp.orbite.co' },
+        Orbite: { apiHost: 'cdp.orbite.co' },
         'Google Tag Manager': {
           ghost: '👻',
         },
@@ -104,7 +104,7 @@ describe(mergedOptions, () => {
     const overrides = {
       integrations: {
         All: false,
-        'Orbite': { apiHost: 'mgs.instacart.com/v2' },
+        Orbite: { apiHost: 'mgs.instacart.com/v2' },
         'Google Tag Manager': true,
       },
     }

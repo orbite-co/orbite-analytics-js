@@ -220,7 +220,7 @@ describe('Event Factory', () => {
           },
         },
         {
-          'Orbite': {
+          Orbite: {
             apiHost: 'custom',
           },
           GoogleAnalytics: false,
@@ -231,7 +231,7 @@ describe('Event Factory', () => {
 
       expect(track.integrations).toEqual({
         // do not pass Segment.io global settings
-        'Orbite': true,
+        Orbite: true,
         // accept amplitude event level settings
         Amplitude: {
           sessionId: 'session_123',

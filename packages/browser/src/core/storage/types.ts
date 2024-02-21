@@ -11,7 +11,7 @@ export const StoreType = {
  *
  * Convenience settings for storage systems that AJS includes support for
  */
-export type StoreType = typeof StoreType[keyof typeof StoreType]
+export type StoreType = (typeof StoreType)[keyof typeof StoreType]
 
 export type StorageObject = Record<string, unknown>
 

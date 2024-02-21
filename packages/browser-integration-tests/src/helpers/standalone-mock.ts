@@ -1,7 +1,7 @@
 import { join as joinPath } from 'path'
 import { test } from '@playwright/test'
 
-type BeforeEachFn = Parameters<typeof test['beforeEach']>[0]
+type BeforeEachFn = Parameters<(typeof test)['beforeEach']>[0]
 
 export const standaloneMock: BeforeEachFn = async ({ context }) => {
   // Setup routing to monorepo

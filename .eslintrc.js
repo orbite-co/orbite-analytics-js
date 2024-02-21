@@ -72,7 +72,7 @@ module.exports = {
                     // Prevent accidental imports from 'lodash'
                     name: 'lodash',
                     message:
-                      'Lodash should only be used for dev-related things, and not in any public library src code (e.g. @orbite/analytics-js)',
+                      'Lodash should only be used for dev-related things, and not in any public library src code (e.g. @segment/analytics-next)',
                   },
                 ],
               },

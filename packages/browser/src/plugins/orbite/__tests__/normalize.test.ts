@@ -122,7 +122,7 @@ describe('before loading', () => {
     describe('unbundling', () => {
       it('should add a list of bundled integrations', () => {
         normalize(analytics, object, options, {
-          'Orbite': {},
+          Orbite: {},
           other: {
             bundlingStatus: 'bundled',
           },
@@ -144,7 +144,7 @@ describe('before loading', () => {
             },
           },
           {
-            'Orbite': {},
+            Orbite: {},
             other: {
               bundlingStatus: 'bundled',
             },

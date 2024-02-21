@@ -4,7 +4,7 @@ This project uses [Turborepo](https://turbo.build/repo/docs), for dependency-awa
 
 ### Setup
 ```sh
- git clone git@github.com:segmentio/analytics-next.git && cd analytics-next
+ git clone git@github.com:orbite-co/orbite-analytics-js.git && cd orbite-analytics-js
  nvm use  # install version of node defined in .nvmrc.
  yarn && yarn build
  yarn lint && yarn test

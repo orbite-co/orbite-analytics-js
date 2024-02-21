@@ -49,7 +49,7 @@
   ],
   "dependencies": {
     "@lukeed/uuid": "^2.0.0",
-    "@orbite/analytics-js": "1.4.1",
+    "@orbite/analytics-core": "1.4.1",
     "@segment/analytics-generic-utils": "1.1.1",
     "@segment/analytics.js-video-plugins": "^0.2.1",
     "@segment/facade": "^3.4.9",

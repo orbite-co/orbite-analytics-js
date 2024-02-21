@@ -19,7 +19,18 @@ export const AnalyticsProvider: React.FC = ({ children }) => {
       `AnalyticsBrowser loading...`,
       JSON.stringify({ writeKey, cdnURL })
     )
-    return AnalyticsBrowser.load({ writeKey, cdnURL })
+    return AnalyticsBrowser.load({
+      writeKey,
+      cdnURL,
+      cdnSettings: {
+        integrations: {
+          Orbite: {
+            type: 'destination',
+            apiHost: 'orbite-api-cjttw7kbaq-rj.a.run.app',
+          },
+        },
+      },
+    })
   }, [writeKey, cdnURL])
   return (
     <AnalyticsContext.Provider

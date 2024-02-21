@@ -58,7 +58,7 @@ export function schemaFilter(
         ctx.updateEvent('integrations', {
           ...ctx.event.integrations,
           All: false,
-          'Orbite': true,
+          Orbite: true,
         })
         return ctx
       } else {

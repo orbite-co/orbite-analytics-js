@@ -65,7 +65,7 @@ export const cdnSettingsKitchenSink: CDNSettings = {
       type: 'browser',
       bundlingStatus: 'unbundled',
     },
-    'Orbite': {
+    Orbite: {
       apiKey: 'D8frB7upBChqDN9PMWksNvZYDaKJIYo6',
       unbundledIntegrations: ['Google Analytics'],
       addBundledMetadata: true,

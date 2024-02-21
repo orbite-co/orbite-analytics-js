@@ -8,7 +8,7 @@
   "repository": {
     "directory": "packages/node",
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-next"
+    "url": "https://github.com/orbite-co/orbite-analytics-js"
   },
   "files": [
     "dist/",
@@ -20,7 +20,7 @@
     "node": ">=18"
   },
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@segment/analytics-node",
+    ".": "yarn run -T turbo run --filter=@orbite-co/analytics-node",
     "test": "yarn jest",
     "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
     "build": "rm -rf dist && yarn concurrently 'yarn:build:*'",

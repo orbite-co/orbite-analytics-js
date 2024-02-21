@@ -60,7 +60,7 @@ describe('alternative names', () => {
       integrations: {
         All: false,
         'fullstory trackEvent': true,
-        'Orbite': {},
+        Orbite: {},
       },
     }
 

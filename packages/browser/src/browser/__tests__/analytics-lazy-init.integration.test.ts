@@ -1,4 +1,4 @@
-import { sleep } from '@orbite/analytics-js'
+import { sleep } from '@orbite/analytics-core'
 import { getBufferedPageCtxFixture } from '../../test-helpers/fixtures'
 import unfetch from 'unfetch'
 import { AnalyticsBrowser } from '..'

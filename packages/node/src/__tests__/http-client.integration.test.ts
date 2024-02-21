@@ -16,7 +16,7 @@ const helpers = {
       analytics.track({ event: 'foo', userId: 'bar' }, resolve)
     ),
   assertFetchCallRequest: (
-    ...[url, options]: NonNullable<typeof testFetch['mock']['lastCall']>
+    ...[url, options]: NonNullable<(typeof testFetch)['mock']['lastCall']>
   ) => {
     expect(url).toBe('https://api.segment.io/v1/batch')
     expect(options.headers).toEqual({

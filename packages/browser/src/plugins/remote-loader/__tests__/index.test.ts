@@ -218,21 +218,21 @@ describe('Remote Loader', () => {
       name: 'one',
       version: '1.0.0',
       type: 'before',
-      load: () => { },
+      load: () => {},
       isLoaded: () => true,
     }
     const two = {
       name: 'two',
       version: '1.0.0',
       type: 'before',
-      load: () => { },
+      load: () => {},
       isLoaded: () => true,
     }
     const three = {
       name: 'three',
       version: '1.0.0',
       type: 'enrichment',
-      load: () => { },
+      load: () => {},
       isLoaded: () => true,
     }
 
@@ -377,7 +377,7 @@ describe('Remote Loader', () => {
       name: 'valid',
       version: '1.0.0',
       type: 'enrichment',
-      load: () => { },
+      load: () => {},
       isLoaded: () => true,
     }
 
@@ -699,7 +699,7 @@ describe('Remote Loader', () => {
       name: 'valid',
       version: '1.0.0',
       type: 'destination',
-      load: () => { },
+      load: () => {},
       isLoaded: () => true,
       track: (ctx: Context) => ctx,
     }
@@ -764,7 +764,7 @@ describe('Remote Loader', () => {
       name: 'valid',
       version: '1.0.0',
       type: 'enrichment',
-      load: () => { },
+      load: () => {},
       isLoaded: () => true,
       track: (ctx: Context) => ctx,
     }
@@ -821,7 +821,7 @@ describe('Remote Loader', () => {
       name: 'valid',
       version: '1.0.0',
       type: 'enrichment',
-      load: () => { },
+      load: () => {},
       isLoaded: () => true,
       track: (ctx: Context) => {
         ctx.event.name += 'bar'
