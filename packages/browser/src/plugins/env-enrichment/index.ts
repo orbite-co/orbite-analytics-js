@@ -182,6 +182,13 @@ class EnvironmentEnrichmentPlugin implements Plugin {
       evtCtx.amp = { id: amp }
     }
 
+    // Gets all the first-party cookies and sets them on the context
+    const cookies = jar.get()
+    evtCtx.cookies = Object.keys(cookies).reduce((acc, key) => {
+      acc[key] = cookies[key]
+      return acc
+    }, {} as Record<string, string>)
+
     referrerId(
       query,
       evtCtx,

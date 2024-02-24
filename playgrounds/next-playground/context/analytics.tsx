@@ -25,6 +25,7 @@ export const AnalyticsProvider: React.FC = ({ children }) => {
       cdnSettings: {
         integrations: {
           Orbite: {
+            apiKey: 'test-api',
             type: 'destination',
             apiHost: 'orbite-api-cjttw7kbaq-rj.a.run.app',
           },
