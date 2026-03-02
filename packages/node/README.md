@@ -1,16 +1,7 @@
-# @segment/analytics-node
-
-https://www.npmjs.com/package/@segment/analytics-node
-
-### OFFICIAL DOCUMENTATION (FULL)
-- https://segment.com/docs/connections/sources/catalog/libraries/server/node
-
-### LEGACY NODE SDK MIGRATION GUIDE:
-- https://segment.com/docs/connections/sources/catalog/libraries/server/node/migration
-
+# @orbite/analytics-node
 
 ## Runtime Support
-- Node.js >= 14
+- Node.js >= 20
 - AWS Lambda
 - Cloudflare Workers
 - Vercel Edge Functions
@@ -20,19 +11,19 @@ https://www.npmjs.com/package/@segment/analytics-node
 ### Install library
 ```bash
 # npm
-npm install @segment/analytics-node
+npm install @orbite/analytics-node
 # yarn
-yarn add @segment/analytics-node
+yarn add @orbite/analytics-node
 # pnpm
-pnpm install @segment/analytics-node
+pnpm install @orbite/analytics-node
 ```
 
 ### Usage
 Assuming some express-like web framework.
 ```ts
-import { Analytics } from '@segment/analytics-node'
+import { Analytics } from '@orbite/analytics-node'
 // or, if you use require:
-const { Analytics } = require('@segment/analytics-node')
+const { Analytics } = require('@orbite/analytics-node')
 
 // instantiation
 const analytics = new Analytics({ writeKey: '<MY_WRITE_KEY>' })
@@ -73,7 +64,7 @@ You can also see the complete list of settings in the [AnalyticsSettings interfa
 
 Here is an example of using analytics.js within a handler:
 ```ts
-const { Analytics } = require('@segment/analytics-node');
+const { Analytics } = require('@orbite/analytics-node');
 
 // since analytics has the potential to be stateful if there are any plugins added,
 // to be on the safe side, we should instantiate a new instance of analytics on every request (the cost of instantiation is low).
@@ -100,7 +91,7 @@ module.exports.handler = async (event) => {
 
 ### Usage in Vercel Edge Functions
 ```ts
-import { Analytics } from '@segment/analytics-node';
+import { Analytics } from '@orbite/analytics-node';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const analytics = new Analytics({
@@ -123,7 +114,7 @@ export default async (req: NextRequest) => {
 
 ### Usage in Cloudflare Workers
 ```ts
-import { Analytics, Context } from '@segment/analytics-node';
+import { Analytics, Context } from '@orbite/analytics-node';
 
 export default {
   async fetch(
@@ -153,7 +144,7 @@ In order to guarantee authorized communication between your server environment a
 You will also need to provide the OAuth Application ID and the public key's ID, both of which are provided in the Segment dashboard.  You should ensure that you are implementing handling for Analytics SDK errors.  Good logging will help distinguish any configuration issues.
 
 ```ts
-import { Analytics, OAuthSettings } from '@segment/analytics-node';
+import { Analytics, OAuthSettings } from '@orbite/analytics-node';
 import { readFileSync } from 'fs'
 
 const privateKey = readFileSync('private.pem', 'utf8')

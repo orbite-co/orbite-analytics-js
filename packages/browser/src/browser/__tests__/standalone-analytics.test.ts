@@ -55,7 +55,7 @@ describe('standalone bundle', () => {
             true,
             `
             window.analytics.track('fruit basket', { fruits: ['🍌', '🍇'] })
-            window.analytics.identify('netto', { employer: 'segment' })
+            window.analytics.identify('netto', { employer: 'orbite' })
             window.analytics.setAnonymousId('anonNetto')
             window.analytics.on('initialize', () => ({ user: 'ariel' }))
           `

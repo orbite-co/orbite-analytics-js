@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /**
  * This is a classic destination, such as:
- * https://github.com/segmentio/analytics.js-integrations/blob/master/integrations/appcues/lib/index.js
+ * https://github.com/orbite/analytics.js-integrations/blob/master/integrations/appcues/lib/index.js
  */
 
 const integration = require('@segment/analytics.js-integration')

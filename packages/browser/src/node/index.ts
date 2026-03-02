@@ -1,13 +1,12 @@
 import { Analytics } from '../core/analytics'
 import { Context } from '../core/context'
-import { validation } from '../plugins/validation'
 import { analyticsNode } from '../plugins/analytics-node'
 import { Plugin } from '../core/plugin'
 import { EventQueue } from '../core/queue/event-queue'
 import { PriorityQueue } from '../lib/priority-queue'
 
 /**
- * @deprecated Please use the standalone `@segment/analytics-node` package.
+ * @deprecated Please use the standalone `@orbite/analytics-node` package.
  */
 export class AnalyticsNode {
   static async load(settings: {
@@ -29,7 +28,6 @@ export class AnalyticsNode {
     }
 
     const ctx = await analytics.register(
-      validation,
       analyticsNode(nodeSettings)
     )
     analytics.emit('initialize', settings, cookieOptions ?? {})

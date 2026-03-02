@@ -4,11 +4,11 @@ import { OAuthSettings } from '../lib/types'
 
 export interface AnalyticsSettings {
   /**
-   * Key that corresponds to your Segment.io project
+   * Key that corresponds to your Orbite project
    */
   writeKey: string
   /**
-   * The base URL of the API. Default: "https://api.segment.io"
+   * The base URL of the API. Default: "https://cdp.orbite.co"
    */
   host?: string
   /**
@@ -47,7 +47,7 @@ export interface AnalyticsSettings {
    */
   httpClient?: HTTPFetchFn | HTTPClient
   /**
-   * Set up OAuth2 authentication between the client and Segment's endpoints
+   * Set up OAuth2 authentication between the client and Orbite's endpoints
    */
   oauthSettings?: OAuthSettings
 }

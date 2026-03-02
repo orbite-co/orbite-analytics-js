@@ -6,6 +6,7 @@ import { Plugin } from '../../core/plugin'
 import { JSDOM } from 'jsdom'
 import { Analytics, InitOptions } from '../../core/analytics'
 import { LegacyDestination } from '../../plugins/ajs-destination'
+import { Fake } from '../../test-helpers/fixtures/classic-destination'
 import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
 // @ts-ignore loadLegacySettings mocked dependency is accused as unused
 import { AnalyticsBrowser, loadLegacySettings } from '..'
@@ -203,7 +204,7 @@ describe('Initialization', () => {
 
   describe('cdn', () => {
     it('should get the correct CDN in plugins if the CDN overridden', async () => {
-      const overriddenCDNUrl = 'http://cdn.segment.com' // http instead of https
+      const overriddenCDNUrl = 'http://cdp.orbite.co' // http instead of https
       await AnalyticsBrowser.load({
         cdnURL: overriddenCDNUrl,
         writeKey,
@@ -387,11 +388,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbitePlugin = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeUndefined()
+      expect(orbitePlugin).toBeUndefined()
     })
 
     it('does not load Orbite if its set to false', async () => {
@@ -400,11 +401,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbitePlugin = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeUndefined()
+      expect(orbitePlugin).toBeUndefined()
     })
 
     it('loads Orbite if integrations.All is false and Orbite is listed', async () => {
@@ -413,11 +414,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbitePlugin = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeDefined()
+      expect(orbitePlugin).toBeDefined()
     })
 
     it('loads Orbite if integrations.All is undefined', async () => {
@@ -426,11 +427,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbitePlugin = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeDefined()
+      expect(orbitePlugin).toBeDefined()
     })
 
     it('loads Orbite if integrations is undefined', async () => {
@@ -439,11 +440,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbitePlugin = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeDefined()
+      expect(orbitePlugin).toBeDefined()
     })
 
     it('loads selected plugins when Orbite is false', async () => {
@@ -462,12 +463,12 @@ describe('Initialization', () => {
         (p) => p.name === 'Test Plugin'
       )
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbitePlugin = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
       expect(plugin).toBeDefined()
-      expect(segmentio).toBeUndefined()
+      expect(orbitePlugin).toBeUndefined()
     })
 
     it('loads selected plugins when Orbite and All are false', async () => {
@@ -487,12 +488,12 @@ describe('Initialization', () => {
         (p) => p.name === 'Test Plugin'
       )
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbitePlugin = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
       expect(plugin).toBeDefined()
-      expect(segmentio).toBeUndefined()
+      expect(orbitePlugin).toBeUndefined()
     })
   })
 })
@@ -504,12 +505,12 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
-    expect(segmentio).toBeDefined()
+    const orbitePlugin = ajs.queue.plugins.find((p) => p.name === 'Orbite')
+    expect(orbitePlugin).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
     const gaSpy = jest.spyOn(googleAnalytics, 'track')
-    const segmentSpy = jest.spyOn(segmentio!, 'track')
+    const orbiteSpy = jest.spyOn(orbitePlugin!, 'track')
 
     const boo = await ajs.track('Boo!', {
       total: 25,
@@ -518,7 +519,7 @@ describe('Dispatch', () => {
 
     expect(ampSpy).toHaveBeenCalledWith(boo)
     expect(gaSpy).toHaveBeenCalledWith(boo)
-    expect(segmentSpy).toHaveBeenCalledWith(boo)
+    expect(orbiteSpy).toHaveBeenCalledWith(boo)
   })
 
   it('does not dispatch events to destinations on deny list', async () => {
@@ -527,12 +528,12 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
-    expect(segmentio).toBeDefined()
+    const orbitePlugin = ajs.queue.plugins.find((p) => p.name === 'Orbite')
+    expect(orbitePlugin).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
     const gaSpy = jest.spyOn(googleAnalytics, 'track')
-    const segmentSpy = jest.spyOn(segmentio!, 'track')
+    const orbiteSpy = jest.spyOn(orbitePlugin!, 'track')
 
     const boo = await ajs.track(
       'Boo!',
@@ -550,7 +551,7 @@ describe('Dispatch', () => {
 
     expect(gaSpy).toHaveBeenCalledWith(boo)
     expect(ampSpy).not.toHaveBeenCalled()
-    expect(segmentSpy).not.toHaveBeenCalled()
+    expect(orbiteSpy).not.toHaveBeenCalled()
   })
 
   it('does dispatch events to Orbite when All is false', async () => {
@@ -559,12 +560,12 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
-    expect(segmentio).toBeDefined()
+    const orbitePlugin = ajs.queue.plugins.find((p) => p.name === 'Orbite')
+    expect(orbitePlugin).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
     const gaSpy = jest.spyOn(googleAnalytics, 'track')
-    const segmentSpy = jest.spyOn(segmentio!, 'track')
+    const orbiteSpy = jest.spyOn(orbitePlugin!, 'track')
 
     const boo = await ajs.track(
       'Boo!',
@@ -581,17 +582,17 @@ describe('Dispatch', () => {
 
     expect(gaSpy).not.toHaveBeenCalled()
     expect(ampSpy).not.toHaveBeenCalled()
-    expect(segmentSpy).toHaveBeenCalledWith(boo)
+    expect(orbiteSpy).toHaveBeenCalledWith(boo)
   })
 
-  it('dispatching to Segmentio not blocked by other destinations', async () => {
+  it('dispatching to Orbite not blocked by other destinations', async () => {
     const [ajs] = await AnalyticsBrowser.load({
       writeKey,
       plugins: [slowPlugin],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
-    const segmentSpy = jest.spyOn(segmentio!, 'track')
+    const orbitePlugin = ajs.queue.plugins.find((p) => p.name === 'Orbite')
+    const orbiteSpy = jest.spyOn(orbitePlugin!, 'track')
 
     await Promise.race([
       ajs.track(
@@ -609,7 +610,7 @@ describe('Dispatch', () => {
       sleep(100),
     ])
 
-    expect(segmentSpy).toHaveBeenCalled()
+    expect(orbiteSpy).toHaveBeenCalled()
   })
 
   it('enriches events before dispatching', async () => {
@@ -808,7 +809,8 @@ describe('addDestinationMiddleware', () => {
       {
         apiKey: amplitudeWriteKey,
       },
-      {}
+      {},
+      Fake // bypass CDN loading — Orbite doesn't host third-party integrations
     )
 
     await analytics.register(amplitude)
@@ -952,7 +954,8 @@ describe('deregister', () => {
       {
         apiKey: amplitudeWriteKey,
       },
-      {}
+      {},
+      Fake // bypass CDN loading — Orbite doesn't host third-party integrations
     )
 
     const [analytics] = await AnalyticsBrowser.load({
@@ -962,11 +965,17 @@ describe('deregister', () => {
 
     await analytics.ready()
 
-    const scriptsLength = window.document.scripts.length
-    expect(scriptsLength).toBeGreaterThan(1)
+    // Verify amplitude was registered in the plugin queue
+    expect(analytics.queue.plugins.some((p) => p.name === 'amplitude')).toBe(
+      true
+    )
 
     await analytics.deregister('amplitude')
-    expect(window.document.scripts.length).toBe(scriptsLength - 1)
+
+    // Verify amplitude was removed from the plugin queue
+    expect(analytics.queue.plugins.some((p) => p.name === 'amplitude')).toBe(
+      false
+    )
   })
 })
 
@@ -1148,7 +1157,8 @@ describe('Options', () => {
         {
           apiKey: amplitudeWriteKey,
         },
-        {}
+        {},
+        Fake // bypass CDN loading — Orbite doesn't host third-party integrations
       )
 
       await analytics.register(amplitude)
@@ -1185,7 +1195,8 @@ describe('Options', () => {
         {
           apiKey: amplitudeWriteKey,
         },
-        initOptions
+        initOptions,
+        Fake // bypass CDN loading — Orbite doesn't host third-party integrations
       )
 
       await analytics.register(amplitude)
@@ -1222,7 +1233,8 @@ describe('Options', () => {
         {
           apiKey: amplitudeWriteKey,
         },
-        initOptions
+        initOptions,
+        Fake // bypass CDN loading — Orbite doesn't host third-party integrations
       )
 
       await analytics.register(amplitude)

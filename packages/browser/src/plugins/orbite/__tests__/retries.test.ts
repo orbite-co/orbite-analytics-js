@@ -13,7 +13,7 @@ jest.mock('../schedule-flush')
 
 type QueueType = 'priority' | 'persisted'
 
-describe('Segment.io retries', () => {
+describe('Orbite retries', () => {
   let options: OrbiteSettings
   let analytics: Analytics
   let segment: Plugin
@@ -48,7 +48,7 @@ describe('Segment.io retries', () => {
         } else {
           queue = new PPQ.PersistedPriorityQueue(
             3,
-            `${options.apiKey}:test-Segment.io`
+            `${options.apiKey}:test-Orbite`
           )
           queue['__type'] = 'persisted'
           Object.defineProperty(PPQ, 'PersistedPriorityQueue', {

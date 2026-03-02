@@ -12,7 +12,7 @@ export const httpClientOptionsBodyMatcher = {
   _metadata: expect.any(Object),
   context: {
     library: {
-      name: '@segment/analytics-node',
+      name: '@orbite/analytics-node',
       version: expect.any(String),
     },
   },
@@ -23,7 +23,7 @@ export function assertHTTPRequestOptions(
   { body, headers, method, url }: HTTPClientRequest,
   contexts: Context[]
 ) {
-  expect(url).toBe('https://api.segment.io/v1/batch')
+  expect(url).toBe('https://cdp.orbite.co/v1/batch')
   expect(method).toBe('POST')
   expect(headers).toEqual({
     'Content-Type': 'application/json',
