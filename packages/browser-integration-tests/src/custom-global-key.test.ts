@@ -7,7 +7,7 @@ test.describe('Segment with custom global key', () => {
   test.beforeEach(standaloneMock)
   test.beforeEach(async ({ context }) => {
     await context.route(
-      'https://cdn.segment.com/v1/projects/*/settings',
+      'https://cdp.orbite.co/v1/projects/*/settings',
       (route, request) => {
         if (request.method().toLowerCase() !== 'get') {
           return route.continue()
@@ -33,7 +33,7 @@ test.describe('Segment with custom global key', () => {
       ;(window as any).segment_analytics.load('fake-key')
     })
 
-    const req = await page.waitForRequest('https://api.segment.io/v1/t')
+    const req = await page.waitForRequest('https://cdp.orbite.co/v1/t')
 
     // confirm that any events triggered before load have been sent
     expect(req.postDataJSON().event).toBe('track before load')

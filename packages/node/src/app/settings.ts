@@ -4,11 +4,11 @@ import { OAuthSettings } from '../lib/types'
 
 export interface AnalyticsSettings {
   /**
-   * Key that corresponds to your Segment.io project
+   * Key that corresponds to your Orbite project
    */
   writeKey: string
   /**
-   * The base URL of the API. Default: "https://api.segment.io"
+   * The base URL of the API. Default: "https://cdp.orbite.co"
    */
   host?: string
   /**
@@ -47,7 +47,7 @@ export interface AnalyticsSettings {
    */
   httpClient?: HTTPFetchFn | HTTPClient
   /**
-   * Set up OAuth2 authentication between the client and Segment's endpoints
+   * Set up OAuth2 authentication between the client and Orbite's endpoints
    */
   oauthSettings?: OAuthSettings
 }
@@ -55,5 +55,11 @@ export interface AnalyticsSettings {
 export const validateSettings = (settings: AnalyticsSettings) => {
   if (!settings.writeKey) {
     throw new ValidationError('writeKey', 'writeKey is missing.')
+  }
+  if (settings.oauthSettings && !settings.oauthSettings.authServer) {
+    throw new ValidationError(
+      'oauthSettings.authServer',
+      'oauthSettings.authServer is required when OAuth is enabled.'
+    )
   }
 }

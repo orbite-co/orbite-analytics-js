@@ -215,6 +215,7 @@ export class Publisher {
     while (currentAttempt < maxAttempts) {
       currentAttempt++
 
+      let requestedRetryTimeout: number | undefined
       let failureReason: unknown
       try {
         if (this._disable) {
@@ -272,13 +273,26 @@ export class Publisher {
             `[${response.status}] ${response.statusText}`
           )
         } else if (response.status === 400) {
-          // https://segment.com/docs/connections/sources/catalog/libraries/server/http-api/#max-request-size
           // Request either malformed or size exceeded - don't retry.
           resolveFailedBatch(
             batch,
             new Error(`[${response.status}] ${response.statusText}`)
           )
           return
+        } else if (response.status === 429) {
+          // Rate limited, wait for the reset time
+          if (response.headers && 'x-ratelimit-reset' in response.headers) {
+            const rateLimitResetTimestamp = parseInt(
+              response.headers['x-ratelimit-reset'],
+              10
+            )
+            if (isFinite(rateLimitResetTimestamp)) {
+              requestedRetryTimeout = rateLimitResetTimestamp - Date.now()
+            }
+          }
+          failureReason = new Error(
+            `[${response.status}] ${response.statusText}`
+          )
         } else {
           // Treat other errors as transient and retry.
           failureReason = new Error(
@@ -298,11 +312,13 @@ export class Publisher {
 
       // Retry after attempt-based backoff.
       await sleep(
-        backoff({
-          attempt: currentAttempt,
-          minTimeout: 25,
-          maxTimeout: 1000,
-        })
+        requestedRetryTimeout
+          ? requestedRetryTimeout
+          : backoff({
+              attempt: currentAttempt,
+              minTimeout: 25,
+              maxTimeout: 1000,
+            })
       )
     }
   }

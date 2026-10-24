@@ -1,6 +1,6 @@
 {
   "name": "@orbite/analytics-node",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -17,10 +17,10 @@
     "!*.tsbuildinfo"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@orbite-co/analytics-node",
+    ".": "yarn run -T turbo run --filter=@orbite/analytics-node",
     "test": "yarn jest",
     "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
     "build": "rm -rf dist && yarn concurrently 'yarn:build:*'",
@@ -36,8 +36,8 @@
   },
   "dependencies": {
     "@lukeed/uuid": "^2.0.0",
-    "@orbite/analytics-core": "1.4.1",
-    "@segment/analytics-generic-utils": "1.1.1",
+    "@orbite/analytics-core": "1.8.2",
+    "@segment/analytics-generic-utils": "1.2.0",
     "buffer": "^6.0.3",
     "jose": "^5.1.0",
     "node-fetch": "^2.6.7",
@@ -45,8 +45,8 @@
   },
   "devDependencies": {
     "@internal/config": "0.0.0",
-    "@types/node": "^16",
-    "axios": "^1.6.0"
+    "@types/node": "^18",
+    "axios": "^1.6.2"
   },
   "packageManager": "yarn@3.4.1"
 }

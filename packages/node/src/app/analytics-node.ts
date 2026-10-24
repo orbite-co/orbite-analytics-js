@@ -145,23 +145,29 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   /**
    * Combines two unassociated user identities.
-   * @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#alias
    */
   alias(
-    { userId, previousId, context, timestamp, integrations }: AliasParams,
+    {
+      userId,
+      previousId,
+      context,
+      timestamp,
+      integrations,
+      messageId,
+    }: AliasParams,
     callback?: Callback
   ): void {
     const orbiteEvent = this._eventFactory.alias(userId, previousId, {
       context,
       integrations,
       timestamp,
+      messageId,
     })
     this._dispatch(orbiteEvent, callback)
   }
 
   /**
    * Associates an identified user with a collective.
-   *  @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#group
    */
   group(
     {
@@ -172,6 +178,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       traits = {},
       context,
       integrations,
+      messageId,
     }: GroupParams,
     callback?: Callback
   ): void {
@@ -181,6 +188,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       userId,
       timestamp,
       integrations,
+      messageId,
     })
 
     this._dispatch(orbiteEvent, callback)
@@ -188,7 +196,6 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   /**
    * Includes a unique userId and (maybe anonymousId) and any optional traits you know about them.
-   * @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#identify
    */
   identify(
     {
@@ -198,6 +205,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       context,
       timestamp,
       integrations,
+      messageId,
     }: IdentifyParams,
     callback?: Callback
   ): void {
@@ -207,13 +215,13 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       userId,
       timestamp,
       integrations,
+      messageId,
     })
     this._dispatch(orbiteEvent, callback)
   }
 
   /**
    * The page method lets you record page views on your website, along with optional extra information about the page being viewed.
-   * @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#page
    */
   page(
     {
@@ -225,6 +233,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       context,
       timestamp,
       integrations,
+      messageId,
     }: PageParams,
     callback?: Callback
   ): void {
@@ -232,7 +241,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       category ?? null,
       name ?? null,
       properties,
-      { context, anonymousId, userId, timestamp, integrations }
+      { context, anonymousId, userId, timestamp, integrations, messageId }
     )
     this._dispatch(orbiteEvent, callback)
   }
@@ -253,6 +262,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       context,
       timestamp,
       integrations,
+      messageId,
     }: PageParams,
     callback?: Callback
   ): void {
@@ -260,7 +270,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       category ?? null,
       name ?? null,
       properties,
-      { context, anonymousId, userId, timestamp, integrations }
+      { context, anonymousId, userId, timestamp, integrations, messageId }
     )
 
     this._dispatch(orbiteEvent, callback)
@@ -268,7 +278,6 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   /**
    * Records actions your users perform.
-   * @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#track
    */
   track(
     {
@@ -279,6 +288,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       context,
       timestamp,
       integrations,
+      messageId,
     }: TrackParams,
     callback?: Callback
   ): void {
@@ -288,6 +298,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       anonymousId,
       timestamp,
       integrations,
+      messageId,
     })
 
     this._dispatch(orbiteEvent, callback)

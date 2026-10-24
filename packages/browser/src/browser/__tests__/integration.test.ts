@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { cdnSettingsKitchenSink } from '../../test-helpers/fixtures/cdn-settings'
+import {
+  cdnSettingsKitchenSink,
+  cdnSettingsMinimal,
+} from '../../test-helpers/fixtures/cdn-settings'
 import { createMockFetchImplementation } from '../../test-helpers/fixtures/create-fetch-method'
 import { Context } from '../../core/context'
 import { Plugin } from '../../core/plugin'
@@ -7,8 +10,8 @@ import { JSDOM } from 'jsdom'
 import { Analytics, InitOptions } from '../../core/analytics'
 import { LegacyDestination } from '../../plugins/ajs-destination'
 import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
-// @ts-ignore loadLegacySettings mocked dependency is accused as unused
-import { AnalyticsBrowser, loadLegacySettings } from '..'
+// @ts-ignore loadCDNSettings mocked dependency is accused as unused
+import { AnalyticsBrowser, CDNSettings, loadCDNSettings } from '..'
 // @ts-ignore isOffline mocked dependency is accused as unused
 import { isOffline } from '../../core/connection'
 import * as OrbitePlugin from '../../plugins/orbite'
@@ -23,7 +26,10 @@ import {
   highEntropyTestData,
   lowEntropyTestData,
 } from '../../test-helpers/fixtures/client-hints'
-import { getGlobalAnalytics, NullAnalytics } from '../..'
+import { getGlobalAnalytics } from '../../lib/global-analytics-helper'
+import { NullAnalytics } from '../../core/analytics'
+import { recordIntegrationMetric } from '../../core/stats/metric-helpers'
+import { waitForCondition } from '../../test-helpers/helpers'
 
 let fetchCalls: ReturnType<typeof parseFetchCall>[] = []
 
@@ -203,7 +209,7 @@ describe('Initialization', () => {
 
   describe('cdn', () => {
     it('should get the correct CDN in plugins if the CDN overridden', async () => {
-      const overriddenCDNUrl = 'http://cdn.segment.com' // http instead of https
+      const overriddenCDNUrl = 'http://cdp.orbite.co' // http instead of https
       await AnalyticsBrowser.load({
         cdnURL: overriddenCDNUrl,
         writeKey,
@@ -371,7 +377,7 @@ describe('Initialization', () => {
     it('does not fetch source settings if cdnSettings is set', async () => {
       await AnalyticsBrowser.load({
         writeKey,
-        cdnSettings: { integrations: {} },
+        cdnSettings: cdnSettingsMinimal,
       })
 
       expect(fetchCalls.length).toBe(0)
@@ -381,17 +387,49 @@ describe('Initialization', () => {
   describe('options.integrations permutations', () => {
     const settings = { writeKey }
 
+    it('proxies integration options', async () => {
+      const analytics = AnalyticsBrowser.load(settings)
+      analytics.track(
+        'foo',
+        {},
+        {
+          integrations: {
+            Warehouses: {
+              warehouseIds: ['3dasf42dd'],
+              all: true,
+            },
+          },
+        }
+      )
+      await waitForCondition(() => {
+        return fetchCalls.some((el) => el.url.toString().includes('/v1/t'))
+      })
+      const trackCall = fetchCalls.find((el) =>
+        el.url.toString().includes('/v1/t')
+      )
+      expect(trackCall?.body.integrations).toMatchInlineSnapshot(`
+        {
+          "Warehouses": {
+            "all": true,
+            "warehouseIds": [
+              "3dasf42dd",
+            ],
+          },
+        }
+      `)
+    })
+
     it('does not load Orbite if integrations.All is false and Orbite is not listed', async () => {
       const options: { integrations: { [key: string]: boolean } } = {
         integrations: { All: false },
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbite = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeUndefined()
+      expect(orbite).toBeUndefined()
     })
 
     it('does not load Orbite if its set to false', async () => {
@@ -400,11 +438,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbite = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeUndefined()
+      expect(orbite).toBeUndefined()
     })
 
     it('loads Orbite if integrations.All is false and Orbite is listed', async () => {
@@ -413,11 +451,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbite = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeDefined()
+      expect(orbite).toBeDefined()
     })
 
     it('loads Orbite if integrations.All is undefined', async () => {
@@ -426,11 +464,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbite = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeDefined()
+      expect(orbite).toBeDefined()
     })
 
     it('loads Orbite if integrations is undefined', async () => {
@@ -439,11 +477,11 @@ describe('Initialization', () => {
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbite = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
-      expect(segmentio).toBeDefined()
+      expect(orbite).toBeDefined()
     })
 
     it('loads selected plugins when Orbite is false', async () => {
@@ -462,12 +500,12 @@ describe('Initialization', () => {
         (p) => p.name === 'Test Plugin'
       )
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbite = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
       expect(plugin).toBeDefined()
-      expect(segmentio).toBeUndefined()
+      expect(orbite).toBeUndefined()
     })
 
     it('loads selected plugins when Orbite and All are false', async () => {
@@ -487,12 +525,12 @@ describe('Initialization', () => {
         (p) => p.name === 'Test Plugin'
       )
 
-      const segmentio = analyticsResponse[0].queue.plugins.find(
+      const orbite = analyticsResponse[0].queue.plugins.find(
         (p) => p.name === 'Orbite'
       )
 
       expect(plugin).toBeDefined()
-      expect(segmentio).toBeUndefined()
+      expect(orbite).toBeUndefined()
     })
   })
 })
@@ -504,12 +542,12 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
-    expect(segmentio).toBeDefined()
+    const orbite = ajs.queue.plugins.find((p) => p.name === 'Orbite')
+    expect(orbite).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
     const gaSpy = jest.spyOn(googleAnalytics, 'track')
-    const segmentSpy = jest.spyOn(segmentio!, 'track')
+    const segmentSpy = jest.spyOn(orbite!, 'track')
 
     const boo = await ajs.track('Boo!', {
       total: 25,
@@ -527,12 +565,12 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
-    expect(segmentio).toBeDefined()
+    const orbite = ajs.queue.plugins.find((p) => p.name === 'Orbite')
+    expect(orbite).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
     const gaSpy = jest.spyOn(googleAnalytics, 'track')
-    const segmentSpy = jest.spyOn(segmentio!, 'track')
+    const segmentSpy = jest.spyOn(orbite!, 'track')
 
     const boo = await ajs.track(
       'Boo!',
@@ -559,12 +597,12 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
-    expect(segmentio).toBeDefined()
+    const orbite = ajs.queue.plugins.find((p) => p.name === 'Orbite')
+    expect(orbite).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
     const gaSpy = jest.spyOn(googleAnalytics, 'track')
-    const segmentSpy = jest.spyOn(segmentio!, 'track')
+    const segmentSpy = jest.spyOn(orbite!, 'track')
 
     const boo = await ajs.track(
       'Boo!',
@@ -584,14 +622,14 @@ describe('Dispatch', () => {
     expect(segmentSpy).toHaveBeenCalledWith(boo)
   })
 
-  it('dispatching to Segmentio not blocked by other destinations', async () => {
+  it('dispatching to Orbite not blocked by other destinations', async () => {
     const [ajs] = await AnalyticsBrowser.load({
       writeKey,
       plugins: [slowPlugin],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Orbite')
-    const segmentSpy = jest.spyOn(segmentio!, 'track')
+    const orbite = ajs.queue.plugins.find((p) => p.name === 'Orbite')
+    const segmentSpy = jest.spyOn(orbite!, 'track')
 
     await Promise.race([
       ajs.track(
@@ -645,8 +683,8 @@ describe('Dispatch', () => {
 
     expect(metrics.map((m) => m.metric)).toMatchInlineSnapshot(`
       [
+        "analytics_js.invoke",
         "message_dispatched",
-        "plugin_time",
         "plugin_time",
         "plugin_time",
         "plugin_time",
@@ -654,6 +692,47 @@ describe('Dispatch', () => {
         "delivered",
       ]
     `)
+  })
+
+  it('respects api and protocol overrides for metrics endpoint', async () => {
+    const [ajs] = await AnalyticsBrowser.load(
+      {
+        writeKey,
+        cdnSettings: {
+          ...cdnSettingsMinimal,
+          integrations: {
+            Orbite: {
+              ...cdnSettingsMinimal.integrations['Orbite'],
+              apiHost: 'cdnSettings.api.io',
+            },
+          },
+          metrics: {
+            flushTimer: 0,
+          },
+        },
+      },
+      {
+        integrations: {
+          Orbite: {
+            apiHost: 'new.api.io',
+            protocol: 'http',
+          },
+        },
+      }
+    )
+
+    const event = await ajs.track('foo')
+
+    recordIntegrationMetric(event, {
+      integrationName: 'foo',
+      methodName: 'bar',
+      type: 'action',
+    })
+
+    await sleep(10)
+    expect(fetchCalls.some((call) => call.url === 'http://new.api.io/m')).toBe(
+      true
+    )
   })
 })
 
@@ -745,28 +824,31 @@ describe('setAnonymousId', () => {
 })
 
 describe('addSourceMiddleware', () => {
-  it('supports registering source middlewares', async () => {
-    const [analytics] = await AnalyticsBrowser.load({
-      writeKey,
-    })
-
-    await analytics
-      .addSourceMiddleware(({ next, payload }) => {
-        payload.obj.context = {
-          hello: 'from the other side',
-        }
-        next(payload)
-      })
-      .catch((err) => {
-        throw err
+  it.each(['track', 'screen'] as const)(
+    'supports registering source middlewares for %s',
+    async (type) => {
+      const [analytics] = await AnalyticsBrowser.load({
+        writeKey,
       })
 
-    const ctx = await analytics.track('Hello!')
+      await analytics
+        .addSourceMiddleware(({ next, payload }) => {
+          payload.obj.context = {
+            hello: 'from the other side',
+          }
+          next(payload)
+        })
+        .catch((err) => {
+          throw err
+        })
 
-    expect(ctx.event.context).toMatchObject({
-      hello: 'from the other side',
-    })
-  })
+      const ctx = await analytics[type]('Hello!')
+
+      expect(ctx.event.context).toMatchObject({
+        hello: 'from the other side',
+      })
+    }
+  )
 })
 
 describe('addDestinationMiddleware', () => {
@@ -796,7 +878,8 @@ describe('addDestinationMiddleware', () => {
     )
   })
 
-  it('supports registering destination middlewares', async () => {
+  // Skipped: loads a classic integration (Amplitude) from the CDN, which Orbite does not host (device-mode destinations are not supported).
+  it.skip('supports registering destination middlewares', async () => {
     const [analytics] = await AnalyticsBrowser.load({
       writeKey,
     })
@@ -838,6 +921,116 @@ describe('addDestinationMiddleware', () => {
       ...ctx.event.properties,
       hello: 'from the other side',
     })
+  })
+
+  it('drops events if  next is never called', async () => {
+    const testPlugin: Plugin = {
+      name: 'test',
+      type: 'destination',
+      version: '0.1.0',
+      load: () => Promise.resolve(),
+      track: jest.fn(),
+      isLoaded: () => true,
+    }
+
+    const [analytics] = await AnalyticsBrowser.load({
+      writeKey,
+    })
+
+    const fullstory = new ActionDestination('fullstory', testPlugin)
+
+    await analytics.register(fullstory)
+    await fullstory.ready()
+    analytics.addDestinationMiddleware('fullstory', () => {
+      // do nothing
+    })
+
+    await analytics.track('foo')
+
+    expect(testPlugin.track).not.toHaveBeenCalled()
+  })
+
+  it('drops events if next is called with null', async () => {
+    const testPlugin: Plugin = {
+      name: 'test',
+      type: 'destination',
+      version: '0.1.0',
+      load: () => Promise.resolve(),
+      track: jest.fn(),
+      isLoaded: () => true,
+    }
+
+    const [analytics] = await AnalyticsBrowser.load({
+      writeKey,
+    })
+
+    const fullstory = new ActionDestination('fullstory', testPlugin)
+
+    await analytics.register(fullstory)
+    await fullstory.ready()
+    analytics.addDestinationMiddleware('fullstory', ({ next }) => {
+      next(null)
+    })
+
+    await analytics.track('foo')
+
+    expect(testPlugin.track).not.toHaveBeenCalled()
+  })
+
+  it('applies to all destinations if * glob is passed as name argument', async () => {
+    const [analytics] = await AnalyticsBrowser.load({
+      writeKey,
+    })
+
+    const p1 = new ActionDestination('p1', { ...googleAnalytics })
+    const p2 = new ActionDestination('p2', { ...amplitude })
+
+    await analytics.register(p1, p2)
+    await p1.ready()
+    await p2.ready()
+
+    const middleware = jest.fn()
+
+    analytics.addDestinationMiddleware('*', middleware)
+    await analytics.track('foo')
+
+    expect(middleware).toHaveBeenCalledTimes(2)
+    expect(middleware).toHaveBeenCalledWith(
+      expect.objectContaining({ integration: 'p1' })
+    )
+    expect(middleware).toHaveBeenCalledWith(
+      expect.objectContaining({ integration: 'p2' })
+    )
+  })
+
+  it('middleware is only applied to type: destination plugins', async () => {
+    const [analytics] = await AnalyticsBrowser.load({
+      writeKey,
+    })
+
+    const utilityPlugin = new ActionDestination('p1', {
+      ...xt,
+      type: 'utility',
+    })
+
+    const destinationPlugin = new ActionDestination('p2', {
+      ...xt,
+      type: 'destination',
+    })
+
+    await analytics.register(utilityPlugin, destinationPlugin)
+    await utilityPlugin.ready()
+    await destinationPlugin.ready()
+
+    const middleware = jest.fn()
+
+    analytics.addDestinationMiddleware('*', middleware)
+    await analytics.track('foo')
+
+    expect(middleware).toHaveBeenCalledTimes(1)
+    expect(middleware).toHaveBeenCalledWith(
+      expect.objectContaining({ integration: 'p2' })
+    )
   })
 
   it('supports registering action destination middlewares', async () => {
@@ -883,22 +1076,108 @@ describe('use', () => {
   })
 })
 
-describe('timeout', () => {
-  it('has a default timeout value', async () => {
+describe('public settings api', () => {
+  it('has expected settings', async () => {
+    const [analytics] = await AnalyticsBrowser.load({
+      writeKey,
+      cdnSettings: cdnSettingsMinimal,
+    })
+
+    expect(analytics.settings).toEqual(
+      expect.objectContaining({
+        writeKey,
+        cdnSettings: cdnSettingsMinimal,
+        timeout: 300,
+        cdnURL: 'https://cdp.orbite.co',
+        apiHost: 'cdp.orbite.co/v1',
+      })
+    )
+  })
+
+  it('should have a writeKey', async () => {
     const [analytics] = await AnalyticsBrowser.load({
       writeKey,
     })
-    //@ts-ignore
-    expect(analytics.settings.timeout).toEqual(300)
+
+    expect(analytics.settings.writeKey).toBe(writeKey)
+  })
+
+  it('should have cdn settings', async () => {
+    const [analytics] = await AnalyticsBrowser.load({
+      writeKey,
+      cdnSettings: cdnSettingsMinimal,
+    })
+
+    expect(analytics.settings.cdnSettings).toEqual(cdnSettingsMinimal)
   })
 
   it('can set a timeout value', async () => {
     const [analytics] = await AnalyticsBrowser.load({
       writeKey,
     })
+    expect(analytics.settings.timeout).toEqual(300)
     analytics.timeout(50)
-    //@ts-ignore
     expect(analytics.settings.timeout).toEqual(50)
+  })
+})
+
+describe('register', () => {
+  it('will not invoke any plugins that have initialization errors', async () => {
+    const analytics = AnalyticsBrowser.load({
+      writeKey,
+    })
+
+    const errorPlugin = new ActionDestination('Error Plugin', {
+      ...googleAnalytics,
+      load: () => Promise.reject('foo'),
+    })
+    const errorPluginSpy = jest.spyOn(errorPlugin, 'track')
+
+    const goodPlugin = new ActionDestination('Good Plugin', {
+      ...googleAnalytics,
+      load: () => Promise.resolve('foo'),
+    })
+
+    await analytics
+    const goodPluginSpy = jest.spyOn(goodPlugin, 'track')
+
+    await analytics.register(goodPlugin, errorPlugin)
+    await errorPlugin.ready()
+    await goodPlugin.ready()
+
+    await analytics.track('foo')
+
+    expect(errorPluginSpy).not.toHaveBeenCalled()
+    expect(goodPluginSpy).toHaveBeenCalled()
+  })
+
+  it('will emit initialization errors', async () => {
+    const analytics = AnalyticsBrowser.load({
+      writeKey,
+    })
+
+    const errorPlugin = new ActionDestination('Error Plugin', {
+      ...googleAnalytics,
+      load: () => Promise.reject('foo'),
+    })
+
+    const goodPlugin = new ActionDestination('Good Plugin', {
+      ...googleAnalytics,
+      load: () => Promise.resolve('foo'),
+    })
+
+    await analytics
+    const errorPluginName = new Promise<string>((resolve) => {
+      analytics.instance?.queue.on('initialization_failure', (plugin) =>
+        resolve(plugin.name)
+      )
+    })
+
+    await analytics.register(goodPlugin, errorPlugin)
+    await errorPlugin.ready()
+    await goodPlugin.ready()
+
+    expect(await errorPluginName).toBe('Error Plugin')
   })
 })
 
@@ -944,7 +1223,8 @@ describe('deregister', () => {
     expect(xt.unload).toHaveBeenCalled()
   })
 
-  it('cleans up the DOM when deregistering a legacy integration', async () => {
+  // Skipped: loads a classic integration (Amplitude) from the CDN, which Orbite does not host (device-mode destinations are not supported).
+  it.skip('cleans up the DOM when deregistering a legacy integration', async () => {
     const amplitude = new LegacyDestination(
       'amplitude',
       'latest',
@@ -986,7 +1266,7 @@ describe('retries', () => {
 
   beforeEach(async () => {
     // @ts-ignore ignore reassining function
-    loadLegacySettings = jest.fn().mockReturnValue(
+    loadCDNSettings = jest.fn().mockReturnValue(
       Promise.resolve({
         integrations: { Orbite: { retryQueue: false } },
       })
@@ -1091,6 +1371,7 @@ describe('Orbite overrides', () => {
         integrations: {
           Orbite: {
             apiHost: 'https://my.endpoint.com',
+            // @ts-ignore
             anotherSettings: '👻',
           },
         },
@@ -1136,7 +1417,8 @@ describe('Options', () => {
   })
 
   describe('disableAutoISOConversion', () => {
-    it('converts iso strings to dates be default', async () => {
+    // Skipped: loads a classic integration (Amplitude) from the CDN, which Orbite does not host (device-mode destinations are not supported).
+    it.skip('converts iso strings to dates be default', async () => {
       const [analytics] = await AnalyticsBrowser.load({
         writeKey,
       })
@@ -1169,7 +1451,8 @@ describe('Options', () => {
       expect(integrationEvent.timestamp()).toBeInstanceOf(Date)
     })
 
-    it('does not convert iso strings to dates be default if  disableAutoISOConversion is false', async () => {
+    // Skipped: loads a classic integration (Amplitude) from the CDN, which Orbite does not host (device-mode destinations are not supported).
+    it.skip('does not convert iso strings to dates be default if  disableAutoISOConversion is false', async () => {
       const initOptions: InitOptions = { disableAutoISOConversion: false }
       const [analytics] = await AnalyticsBrowser.load(
         {
@@ -1206,7 +1489,8 @@ describe('Options', () => {
       expect(integrationEvent.timestamp()).toBeInstanceOf(Date)
     })
 
-    it('does not convert iso strings to dates when `true`', async () => {
+    // Skipped: loads a classic integration (Amplitude) from the CDN, which Orbite does not host (device-mode destinations are not supported).
+    it.skip('does not convert iso strings to dates when `true`', async () => {
       const initOptions: InitOptions = { disableAutoISOConversion: true }
       const [analytics] = await AnalyticsBrowser.load(
         {
@@ -1286,13 +1570,47 @@ describe('Options', () => {
       const disableSpy = jest.fn().mockReturnValue(true)
       const [analytics] = await AnalyticsBrowser.load(
         {
-          cdnSettings: { integrations: {}, foo: 123 },
+          cdnSettings: cdnSettingsMinimal,
           writeKey,
         },
         { disable: disableSpy }
       )
       expect(analytics).toBeInstanceOf(NullAnalytics)
-      expect(disableSpy).toBeCalledWith({ integrations: {}, foo: 123 })
+      expect(disableSpy).toHaveBeenCalledWith(cdnSettingsMinimal)
+    })
+  })
+})
+
+describe('setting headers', () => {
+  it('allows setting headers', async () => {
+    const [ajs] = await AnalyticsBrowser.load(
+      {
+        writeKey,
+      },
+      {
+        integrations: {
+          Orbite: {
+            deliveryStrategy: {
+              config: {
+                headers: {
+                  'X-Test': 'foo',
+                },
+              },
+            },
+          },
+        },
+      }
+    )
+
+    await ajs.track('sup')
+
+    await sleep(10)
+    const [call] = fetchCalls.filter((el) =>
+      el.url.toString().includes('cdp.orbite.co/v1/t')
+    )
+    expect(call.headers).toEqual({
+      'Content-Type': 'text/plain',
+      'X-Test': 'foo',
     })
   })
 })

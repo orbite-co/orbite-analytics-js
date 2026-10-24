@@ -21,8 +21,8 @@ export function getPersistedItems(): PersistedQueueResult[] {
         : []
 
       // Key looks like either:
-      // new keys - persisted-queue:v1:writeKey:dest-Segment.io:items
-      // old keys - persisted-queue:v1:dest-Segment.io:items
+      // new keys - persisted-queue:v1:writeKey:dest-Orbite:items
+      // old keys - persisted-queue:v1:dest-Orbite:items
       const components = key.split(':')
       let writeKey: string | undefined
       let name: string

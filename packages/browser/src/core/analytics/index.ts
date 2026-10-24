@@ -15,24 +15,13 @@ import { isOffline } from '../connection'
 import { Context } from '../context'
 import { dispatch } from '@orbite/analytics-core'
 import { Emitter } from '@segment/analytics-generic-utils'
-import {
-  Callback,
-  EventFactory,
-  Integrations,
-  Plan,
-  EventProperties,
-  OrbiteEvent,
-} from '../events'
-import type { Plugin } from '../plugin'
+import { Callback, EventFactory, EventProperties, OrbiteEvent } from '../events'
+import { isDestinationPluginWithAddMiddleware, Plugin } from '../plugin'
 import { EventQueue } from '../queue/event-queue'
-import { Group, ID, User, UserOptions } from '../user'
+import { Group, ID, User } from '../user'
 import autoBind from '../../lib/bind-all'
 import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
-import type { LegacyDestination } from '../../plugins/ajs-destination'
-import type {
-  LegacyIntegration,
-  ClassicIntegrationSource,
-} from '../../plugins/ajs-destination/types'
+import type { LegacyIntegration } from '../../plugins/ajs-destination/types'
 import type {
   DestinationMiddlewareFunction,
   MiddlewareFunction,
@@ -41,21 +30,26 @@ import { version } from '../../generated/version'
 import { PriorityQueue } from '../../lib/priority-queue'
 import { getGlobal } from '../../lib/get-global'
 import { AnalyticsClassic, AnalyticsCore } from './interfaces'
-import { HighEntropyHint } from '../../lib/client-hints/interfaces'
-import type { LegacySettings } from '../../browser'
+import type { CDNSettings } from '../../browser'
 import {
   CookieOptions,
   MemoryStorage,
   UniversalStorage,
-  StorageSettings,
   StoreType,
   applyCookieOptions,
   initializeStorages,
   isArrayOfStoreType,
 } from '../storage'
-import { PluginFactory } from '../../plugins/remote-loader'
 import { setGlobalAnalytics } from '../../lib/global-analytics-helper'
 import { popPageContext } from '../buffer'
+import { isOrbitePlugin, OrbitePluginMetadata } from '../../plugins/orbite'
+import {
+  AnalyticsSettings,
+  IntegrationsInitOptions,
+  InitOptions,
+} from '../../browser/settings'
+
+export type { InitOptions, AnalyticsSettings }
 
 const deprecationWarning =
   'This is being deprecated and will be not be available in future releases of Analytics JS'
@@ -76,77 +70,43 @@ function createDefaultQueue(
   return new EventQueue(priorityQueue)
 }
 
-export interface AnalyticsSettings {
-  writeKey: string
-  timeout?: number
-  plugins?: (Plugin | PluginFactory)[]
-  classicIntegrations?: ClassicIntegrationSource[]
-}
-
-export interface InitOptions {
+/**
+ * The public settings that are set on the analytics instance
+ */
+export class AnalyticsInstanceSettings {
+  readonly writeKey: string
   /**
-   * Disables storing any data on the client-side via cookies or localstorage.
-   * Defaults to `false`.
-   *
+   * This is an unstable API, it may change in the future without warning.
    */
-  disableClientPersistence?: boolean
-  /**
-   * Disables automatically converting ISO string event properties into Dates.
-   * ISO string to Date conversions occur right before sending events to a classic device mode integration,
-   * after any destination middleware have been ran.
-   * Defaults to `false`.
-   */
-  disableAutoISOConversion?: boolean
-  initialPageview?: boolean
-  cookie?: CookieOptions
-  storage?: StorageSettings
-  user?: UserOptions
-  group?: UserOptions
-  integrations?: Integrations
-  plan?: Plan
-  retryQueue?: boolean
-  obfuscate?: boolean
-  /**
-   * This callback allows you to update/mutate CDN Settings.
-   * This is called directly after settings are fetched from the CDN.
-   */
-  updateCDNSettings?: (settings: LegacySettings) => LegacySettings
-  /**
-   * Disables or sets constraints on processing of query string parameters
-   */
-  useQueryString?:
-    | boolean
-    | {
-        aid?: RegExp
-        uid?: RegExp
-      }
-  /**
-   * Array of high entropy Client Hints to request. These may be rejected by the user agent - only required hints should be requested.
-   */
-  highEntropyValuesClientHints?: HighEntropyHint[]
-  /**
-   * When using the snippet, this is the key that points to the global analytics instance (e.g. window.analytics).
-   * default: analytics
-   */
-  globalAnalyticsKey?: string
+  readonly cdnSettings: CDNSettings
+  readonly cdnURL?: string
+  get apiHost(): string | undefined {
+    return this._getOrbitePluginMetadata?.()?.apiHost
+  }
+  private _getOrbitePluginMetadata?: () => OrbitePluginMetadata | undefined
 
   /**
-   * Disable sending any data to Segment's servers. All emitted events and API calls (including .ready()), will be no-ops, and no cookies or localstorage will be used.
-   *
-   * @example
-   * ### Basic (Will not not fetch any CDN settings)
-   * ```ts
-   * disable: process.env.NODE_ENV === 'test'
-   * ```
-   *
-   * ### Advanced (Fetches CDN Settings. Do not use this unless you require CDN settings for some reason)
-   * ```ts
-   * disable: (cdnSettings) => cdnSettings.foo === 'bar'
-   * ```
+   * Auto-track specific timeout setting for legacy purposes.
    */
-  disable?:
-    | boolean
-    | ((cdnSettings: LegacySettings) => boolean | Promise<boolean>)
+  timeout = 300
+
+  constructor(settings: AnalyticsSettings, queue: EventQueue) {
+    this._getOrbitePluginMetadata = () =>
+      queue.plugins.find(isOrbitePlugin)?.metadata
+    this.writeKey = settings.writeKey
+
+    // this is basically just to satisfy typescript / so we don't need to change the function sig of every test.
+    // when loadAnalytics is called, cdnSettings will always be available.
+    const emptyCDNSettings: CDNSettings = {
+      integrations: {
+        Orbite: {
+          apiKey: '',
+        },
+      },
+    }
+    this.cdnSettings = settings.cdnSettings ?? emptyCDNSettings
+    this.cdnURL = settings.cdnURL
+  }
 }
 
 /* analytics-classic stubs */
@@ -158,7 +118,7 @@ export class Analytics
   extends Emitter
   implements AnalyticsCore, AnalyticsClassic
 {
-  protected settings: AnalyticsSettings
+  settings: AnalyticsInstanceSettings
   private _user: User
   private _group: Group
   private eventFactory: EventFactory
@@ -166,7 +126,7 @@ export class Analytics
   private _universalStorage: UniversalStorage
 
   initialized = false
-  integrations: Integrations
+  integrations: IntegrationsInitOptions
   options: InitOptions
   queue: EventQueue
 
@@ -180,8 +140,7 @@ export class Analytics
     super()
     const cookieOptions = options?.cookie
     const disablePersistance = options?.disableClientPersistence ?? false
-    this.settings = settings
-    this.settings.timeout = this.settings.timeout ?? 300
+
     this.queue =
       queue ??
       createDefaultQueue(
@@ -189,6 +148,7 @@ export class Analytics
         options?.retryQueue,
         disablePersistance
       )
+    this.settings = new AnalyticsInstanceSettings(settings, this.queue)
 
     const storageSetting = options?.storage
     this._universalStorage = this.createStore(
@@ -485,6 +445,7 @@ export class Analytics
     callback?: Callback
   ): Promise<DispatchedEvent> {
     const ctx = new Context(event)
+    ctx.stats.increment('analytics_js.invoke', 1, [event.type])
     if (isOffline() && !this.options.retryQueue) {
       return ctx
     }
@@ -520,13 +481,17 @@ export class Analytics
     integrationName: string,
     ...middlewares: DestinationMiddlewareFunction[]
   ): Promise<Analytics> {
-    const legacyDestinations = this.queue.plugins.filter(
-      (xt) => xt.name.toLowerCase() === integrationName.toLowerCase()
-    ) as LegacyDestination[]
+    this.queue.plugins
+      .filter(isDestinationPluginWithAddMiddleware)
+      .forEach((p) => {
+        if (
+          integrationName === '*' ||
+          p.name.toLowerCase() === integrationName.toLowerCase()
+        ) {
+          p.addMiddleware(...middlewares)
+        }
+      })
 
-    legacyDestinations.forEach((destination) => {
-      destination.addMiddleware(...middlewares)
-    })
     return Promise.resolve(this)
   }
 
@@ -579,7 +544,7 @@ export class Analytics
 
   normalize(msg: OrbiteEvent): OrbiteEvent {
     console.warn(deprecationWarning)
-    return this.eventFactory.normalize(msg)
+    return this.eventFactory['normalize'](msg)
   }
 
   get failedInitializations(): string[] {

@@ -1,9 +1,12 @@
+import braze from '@segment/analytics-browser-actions-braze'
+
 import * as loader from '../../../lib/load-script'
-import { ActionDestination, remoteLoader } from '..'
-import { AnalyticsBrowser, LegacySettings } from '../../../browser'
+import { ActionDestination, PluginFactory, remoteLoader } from '..'
+import { AnalyticsBrowser, CDNSettings } from '../../../browser'
 import { InitOptions } from '../../../core/analytics'
 import { Context } from '../../../core/context'
 import { tsubMiddleware } from '../../routing-middleware'
+import { cdnSettingsMinimal } from '../../../test-helpers/fixtures'
 
 const pluginFactory = jest.fn()
 
@@ -24,7 +27,7 @@ describe('Remote Loader', () => {
   it('should attempt to load a script from the url of each remotePlugin', async () => {
     await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'remote plugin',
@@ -45,7 +48,7 @@ describe('Remote Loader', () => {
   it('should attempt to load a script from the obfuscated url of each remotePlugin', async () => {
     await remoteLoader(
       {
-        integrations: {},
+        integrations: cdnSettingsMinimal.integrations,
         remotePlugins: [
           {
             name: 'remote plugin',
@@ -58,7 +61,7 @@ describe('Remote Loader', () => {
       },
       {},
       {},
-      true
+      { obfuscate: true }
     )
     const btoaName = btoa('to').replace(/=/g, '')
     expect(loader.loadScript).toHaveBeenCalledWith(
@@ -71,7 +74,7 @@ describe('Remote Loader', () => {
     window.analytics._cdn = 'foo.com'
     await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'remote plugin',
@@ -89,10 +92,36 @@ describe('Remote Loader', () => {
     expect(loader.loadScript).toHaveBeenCalledWith('foo.com/actions/file.js')
   })
 
+  // Skipped: Orbite has no staging CDN (Segment's cdn.segment.build is not rewritten).
+  it.skip('should work if the cdn is staging', async () => {
+    const stagingURL = 'https://cdn.segment.build/actions/foo.js'
+
+    window.analytics = {}
+    window.analytics._cdn = 'foo.com'
+    await remoteLoader(
+      {
+        ...cdnSettingsMinimal,
+        remotePlugins: [
+          {
+            name: 'remote plugin',
+            creationName: 'remote plugin',
+            url: stagingURL,
+            libraryName: 'testPlugin',
+            settings: {},
+          },
+        ],
+      },
+      {},
+      {}
+    )
+
+    expect(loader.loadScript).toHaveBeenCalledWith('foo.com/actions/foo.js')
+  })
+
   it('should attempt calling the library', async () => {
     await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'remote plugin',
@@ -117,10 +146,64 @@ describe('Remote Loader', () => {
     )
   })
 
+  it('should load from given plugin sources before loading from CDN', async () => {
+    const brazeSpy = jest.spyOn({ braze }, 'braze')
+    ;(brazeSpy as any).pluginName = braze.pluginName
+
+    await remoteLoader(
+      {
+        ...cdnSettingsMinimal,
+        remotePlugins: [
+          {
+            name: 'Braze Web Mode (Actions)',
+            creationName: 'Braze Web Mode (Actions)',
+            libraryName: 'brazeDestination',
+            url: 'https://cdp.orbite.co/next-integrations/actions/braze/a6f95f5869852b848386.js',
+            settings: {
+              api_key: 'test-api-key',
+              versionSettings: {
+                componentTypes: [],
+              },
+              subscriptions: [
+                {
+                  id: '3thVuvYKBcEGKEZA185Tbs',
+                  name: 'Track Calls',
+                  enabled: true,
+                  partnerAction: 'trackEvent',
+                  subscribe: 'type = "track" and event != "Order Completed"',
+                  mapping: {
+                    eventName: {
+                      '@path': '$.event',
+                    },
+                    eventProperties: {
+                      '@path': '$.properties',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      {},
+      {},
+      undefined,
+      undefined,
+      [brazeSpy as unknown as PluginFactory]
+    )
+
+    expect(brazeSpy).toHaveBeenCalledTimes(1)
+    expect(brazeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        api_key: 'test-api-key',
+      })
+    )
+  })
+
   it('should not load remote plugins when integrations object contains all: false', async () => {
     await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'remote plugin',
@@ -143,7 +226,7 @@ describe('Remote Loader', () => {
   it('should load remote plugins when integrations object contains all: false but plugin: true', async () => {
     await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'remote plugin',
@@ -171,7 +254,7 @@ describe('Remote Loader', () => {
   it('should load remote plugin when integrations object contains plugin: false', async () => {
     await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'remote plugin',
@@ -194,7 +277,7 @@ describe('Remote Loader', () => {
   it('should skip remote plugins that arent callable functions', async () => {
     const plugins = await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'remote plugin',
@@ -251,7 +334,7 @@ describe('Remote Loader', () => {
 
     const plugins = await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'multiple plugins',
@@ -276,7 +359,7 @@ describe('Remote Loader', () => {
     expect(plugins).toHaveLength(3)
     expect(plugins).toEqual(
       expect.arrayContaining([
-        {
+        expect.objectContaining({
           action: one,
           name: 'multiple plugins',
           version: '1.0.0',
@@ -289,8 +372,8 @@ describe('Remote Loader', () => {
           identify: expect.any(Function),
           page: expect.any(Function),
           screen: expect.any(Function),
-        },
-        {
+        }),
+        expect.objectContaining({
           action: two,
           name: 'multiple plugins',
           version: '1.0.0',
@@ -303,8 +386,8 @@ describe('Remote Loader', () => {
           identify: expect.any(Function),
           page: expect.any(Function),
           screen: expect.any(Function),
-        },
-        {
+        }),
+        expect.objectContaining({
           action: three,
           name: 'single plugin',
           version: '1.0.0',
@@ -317,7 +400,7 @@ describe('Remote Loader', () => {
           identify: expect.any(Function),
           page: expect.any(Function),
           screen: expect.any(Function),
-        },
+        }),
       ])
     )
     expect(multiPluginFactory).toHaveBeenCalledWith({ foo: true })
@@ -340,7 +423,7 @@ describe('Remote Loader', () => {
 
     const plugins = await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'flaky plugin',
@@ -394,7 +477,7 @@ describe('Remote Loader', () => {
 
     const plugins = await remoteLoader(
       {
-        integrations: {},
+        ...cdnSettingsMinimal,
         remotePlugins: [
           {
             name: 'valid plugin',
@@ -419,7 +502,7 @@ describe('Remote Loader', () => {
     expect(plugins).toHaveLength(1)
     expect(plugins).toEqual(
       expect.arrayContaining([
-        {
+        expect.objectContaining({
           action: validPlugin,
           name: 'valid plugin',
           version: '1.0.0',
@@ -432,15 +515,17 @@ describe('Remote Loader', () => {
           identify: expect.any(Function),
           page: expect.any(Function),
           screen: expect.any(Function),
-        },
+        }),
       ])
     )
     expect(console.warn).toHaveBeenCalledTimes(1)
   })
 
   it('accepts settings overrides from merged integrations', async () => {
-    const cdnSettings: LegacySettings = {
+    const cdnSettings: CDNSettings = {
+      ...cdnSettingsMinimal,
       integrations: {
+        ...cdnSettingsMinimal.integrations,
         remotePlugin: {
           name: 'Charlie Brown',
           version: '1.0',
@@ -468,6 +553,7 @@ describe('Remote Loader', () => {
     }
 
     await remoteLoader(cdnSettings, userOverrides, {
+      // @ts-ignore
       remotePlugin: {
         ...cdnSettings.integrations.remotePlugin,
         ...userOverrides.remotePlugin,
@@ -486,7 +572,9 @@ describe('Remote Loader', () => {
 
   it('accepts settings overrides from options (AnalyticsBrowser)', async () => {
     const cdnSettings = {
+      ...cdnSettingsMinimal,
       integrations: {
+        ...cdnSettingsMinimal.integrations,
         remotePlugin: {
           name: 'Charlie Brown',
           version: '1.0',
@@ -539,6 +627,7 @@ describe('Remote Loader', () => {
   it('loads destinations when `All: false` but is enabled (pluginName)', async () => {
     const cdnSettings = {
       integrations: {
+        ...cdnSettingsMinimal.integrations,
         oldValidName: {
           versionSettings: {
             componentTypes: [],
@@ -579,7 +668,9 @@ describe('Remote Loader', () => {
 
   it('loads destinations when `All: false` but is enabled (creationName)', async () => {
     const cdnSettings = {
+      ...cdnSettingsMinimal,
       integrations: {
+        ...cdnSettingsMinimal.integrations,
         oldValidName: {
           versionSettings: {
             componentTypes: [],
@@ -620,7 +711,9 @@ describe('Remote Loader', () => {
 
   it('does not load destinations when disabled via pluginName', async () => {
     const cdnSettings = {
+      ...cdnSettingsMinimal,
       integrations: {
+        ...cdnSettingsMinimal.integrations,
         oldValidName: {
           versionSettings: {
             componentTypes: [],
@@ -659,6 +752,7 @@ describe('Remote Loader', () => {
   it('does not load destinations when disabled via creationName', async () => {
     const cdnSettings = {
       integrations: {
+        ...cdnSettingsMinimal.integrations,
         oldValidName: {
           versionSettings: {
             componentTypes: [],
@@ -704,8 +798,8 @@ describe('Remote Loader', () => {
       track: (ctx: Context) => ctx,
     }
 
-    const cdnSettings: LegacySettings = {
-      integrations: {},
+    const cdnSettings: CDNSettings = {
+      ...cdnSettingsMinimal,
       middlewareSettings: {
         routingRules: [
           {
@@ -746,7 +840,13 @@ describe('Remote Loader', () => {
       cdnSettings.middlewareSettings!.routingRules
     )
 
-    const plugins = await remoteLoader(cdnSettings, {}, {}, false, middleware)
+    const plugins = await remoteLoader(
+      cdnSettings,
+      {},
+      {},
+      undefined,
+      middleware
+    )
     const plugin = plugins[0]
     await expect(() =>
       plugin.track!(new Context({ type: 'track', event: 'Item Impression' }))
@@ -764,13 +864,13 @@ describe('Remote Loader', () => {
       name: 'valid',
       version: '1.0.0',
       type: 'enrichment',
-      load: () => {},
+      load: () => Promise.resolve(),
       isLoaded: () => true,
       track: (ctx: Context) => ctx,
     }
 
-    const cdnSettings: LegacySettings = {
-      integrations: {},
+    const cdnSettings: CDNSettings = {
+      ...cdnSettingsMinimal,
       middlewareSettings: {
         routingRules: [
           {
@@ -809,8 +909,15 @@ describe('Remote Loader', () => {
 
     const middleware = jest.fn().mockImplementation(() => true)
 
-    const plugins = await remoteLoader(cdnSettings, {}, {}, false, middleware)
+    const plugins = await remoteLoader(
+      cdnSettings,
+      {},
+      {},
+      undefined,
+      middleware
+    )
     const plugin = plugins[0] as ActionDestination
+    await plugin.load(new Context(null as any), null as any)
     plugin.addMiddleware(middleware)
     await plugin.track(new Context({ type: 'track' }))
     expect(middleware).not.toHaveBeenCalled()
@@ -821,7 +928,7 @@ describe('Remote Loader', () => {
       name: 'valid',
       version: '1.0.0',
       type: 'enrichment',
-      load: () => {},
+      load: () => Promise.resolve(),
       isLoaded: () => true,
       track: (ctx: Context) => {
         ctx.event.name += 'bar'
@@ -829,8 +936,8 @@ describe('Remote Loader', () => {
       },
     }
 
-    const cdnSettings: LegacySettings = {
-      integrations: {},
+    const cdnSettings: CDNSettings = {
+      ...cdnSettingsMinimal,
       remotePlugins: [
         {
           name: 'valid',
@@ -851,8 +958,9 @@ describe('Remote Loader', () => {
       return Promise.resolve(true)
     })
 
-    const plugins = await remoteLoader(cdnSettings, {}, {}, false)
+    const plugins = await remoteLoader(cdnSettings, {}, {})
     const plugin = plugins[0] as ActionDestination
+    await plugin.load(new Context(null as any), null as any)
     const newCtx = await plugin.track(
       new Context({ type: 'track', name: 'foo' })
     )

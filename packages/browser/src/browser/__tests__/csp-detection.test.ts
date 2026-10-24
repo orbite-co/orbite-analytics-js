@@ -1,12 +1,15 @@
 import jsdom, { JSDOM } from 'jsdom'
 import unfetch from 'unfetch'
-import { LegacySettings } from '..'
+import { CDNSettings } from '..'
 import { pWhile } from '../../lib/p-while'
 import { snippet } from '../../tester/__fixtures__/snippet'
 import * as Factory from '../../test-helpers/factories'
+import { cdnSettingsMinimal } from '../../test-helpers/fixtures'
 
-const cdnResponse: LegacySettings = {
+const cdnResponse: CDNSettings = {
+  ...cdnSettingsMinimal,
   integrations: {
+    ...cdnSettingsMinimal.integrations,
     Zapier: {
       type: 'server',
     },
@@ -14,7 +17,7 @@ const cdnResponse: LegacySettings = {
     Amplitude: {
       type: 'browser',
     },
-    Orbite: {
+    Segmentio: {
       type: 'browser',
     },
     Iterable: {

@@ -9,16 +9,18 @@
     "scripts"
   ],
   "engines": {
-    "node": "^16.16.0"
+    "node": ">=20"
   },
   "scripts": {
     "test": "jest",
     "test:check-dts": "yarn build && yarn ts-node meta-tests/check-dts.ts",
     "test:node-int": "turbo run --filter=node-integration-tests test",
     "lint": "yarn constraints && turbo run lint --continue",
+    "typecheck": "turbo run tsc --filter='./packages/**'",
     "build": "turbo run build --filter='./packages/**'",
     "watch": "turbo run watch --filter='./packages/**'",
     "dev": "yarn workspace @playground/next-playground run dev",
+    "prepush": "turbo run tsc --affected",
     "postinstall": "husky install",
     "changeset": "changeset",
     "update-versions-and-changelogs": "changeset version && yarn version-run-all && bash scripts/update-lockfile.sh",
@@ -35,7 +37,9 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.4.5",
     "@changesets/cli": "^2.23.2",
+    "@microsoft/api-extractor": "^7.47.9",
     "@npmcli/promise-spawn": "^7.0.0",
+    "@swc/core": "^1.11.18",
     "@types/express": "4",
     "@types/jest": "^29.5.11",
     "@types/lodash": "^4",
@@ -45,6 +49,7 @@
     "concurrently": "^7.6.0",
     "eslint": "^8.14.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-gitignore": "^0.1.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-jest": "^27.2.2",
     "eslint-plugin-prettier": "^4.0.0",
@@ -59,9 +64,10 @@
     "prettier": "^2.6.2",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.8.0",
-    "turbo": "^1.10.14",
+    "tsup": "^8.4.0",
+    "turbo": "^2.3.4",
     "typescript": "^4.7.0",
-    "webpack": "^5.76.0",
+    "webpack": "^5.94.0",
     "webpack-dev-server": "^4.15.1"
   },
   "resolutions": {

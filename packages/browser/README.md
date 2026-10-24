@@ -28,19 +28,19 @@ The easiest and quickest way to get started with Analytics 2.0 is to [use it thr
 
 ```sh
 # npm
-npm install @segment/analytics-next
+npm install @orbite/analytics-js
 
 # yarn
-yarn add @segment/analytics-next
+yarn add @orbite/analytics-js
 
 # pnpm
-pnpm add @segment/analytics-next
+pnpm add @orbite/analytics-js
 ```
 
 2. Import the package into your project and you're good to go (with working types)!
 
 ```ts
-import { AnalyticsBrowser } from '@segment/analytics-next'
+import { AnalyticsBrowser } from '@orbite/analytics-js'
 
 const analytics = AnalyticsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
 
@@ -94,7 +94,7 @@ analytics
 
 ### Vanilla React
 ```tsx
-import { AnalyticsBrowser } from '@segment/analytics-next'
+import { AnalyticsBrowser } from '@orbite/analytics-js'
 
 // We can export this instance to share with rest of our codebase.
 export const analytics = AnalyticsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
@@ -113,7 +113,7 @@ const App = () => (
 1. Export analytics instance.
 
 ```ts
-import { AnalyticsBrowser } from '@segment/analytics-next'
+import { AnalyticsBrowser } from '@orbite/analytics-js'
 
 export const analytics = AnalyticsBrowser.load({
   writeKey: '<YOUR_WRITE_KEY>',
@@ -150,19 +150,19 @@ export default defineComponent({
 
 1. Run analytics.js in a web worker via [partytown.io](https://partytown.builder.io/). See [our partytown example](../../playgrounds/next-playground/pages/partytown). **Supports both cloud and device mode destinations, but not all device mode destinations may work.**
 
-2. Try [@segment/analytics-node](../node) with `flushAt: 1`, which should work in any runtime where `fetch` is available. **Warning: cloud destinations only!**
+2. Try [@orbite/analytics-node](../node) with `flushAt: 1`, which should work in any runtime where `fetch` is available. **Warning: cloud destinations only!**
 
 
 
 
 ## How to add typescript support (snippet users only)
 
-1. Install npm package `@segment/analytics-next` as a dev dependency.
+1. Install npm package `@orbite/analytics-js` as a dev dependency.
 
 2. Create `./typings/analytics.d.ts`
 ```ts
 // ./typings/analytics.d.ts
-import type { AnalyticsSnippet } from "@segment/analytics-next";
+import type { AnalyticsSnippet } from "@orbite/analytics-js";
 
 declare global {
   interface Window {
@@ -193,7 +193,7 @@ declare global {
 First, clone the repo and then startup our local dev environment:
 
 ```sh
-$ git clone git@github.com:segmentio/analytics-next.git
+$ git clone git@github.com:orbite-co/orbite-analytics-js.git
 $ cd analytics-next
 $ nvm use  # installs correct version of node defined in .nvmrc.
 $ yarn && yarn build
@@ -201,7 +201,7 @@ $ yarn test
 $ yarn dev  # optional: runs analytics-next playground.
 ```
 
-> If you get "Cannot find module '@segment/analytics-next' or its corresponding type declarations.ts(2307)" (in VSCode), you may have to "cmd+shift+p -> "TypeScript: Restart TS server"
+> If you get "Cannot find module '@orbite/analytics-js' or its corresponding type declarations.ts(2307)" (in VSCode), you may have to "cmd+shift+p -> "TypeScript: Restart TS server"
 
 Then, make your changes and test them out in the test app!
 
@@ -227,7 +227,7 @@ and can be of five different types:
 Here is an example of a simple plugin that would convert all track events event names to lowercase before the event gets sent through the rest of the pipeline:
 
 ```ts
-import type { Plugin } from '@segment/analytics-next'
+import type { Plugin } from '@orbite/analytics-js'
 
 export const lowercase: Plugin = {
   name: 'Lowercase Event Name',

@@ -1,6 +1,6 @@
 {
   "name": "@segment/analytics-consent-tools",
-  "version": "1.2.0",
+  "version": "2.0.2",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
@@ -27,7 +27,7 @@
     "jest": "yarn run -T jest"
   },
   "peerDependencies": {
-    "@orbite/analytics-js": ">=1.53.1"
+    "@orbite/analytics-js": ">=1.67.0"
   },
   "peerDependenciesMeta": {
     "@orbite/analytics-js": {
@@ -44,7 +44,7 @@
   "repository": {
     "directory": "packages/consent/consent-tools",
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-next"
+    "url": "https://github.com/orbite-co/orbite-analytics-js"
   },
   "dependencies": {
     "tslib": "^2.4.1"

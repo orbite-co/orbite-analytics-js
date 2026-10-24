@@ -182,7 +182,10 @@ class EnvironmentEnrichmentPlugin implements Plugin {
       evtCtx.amp = { id: amp }
     }
 
-    // Gets all the first-party cookies and sets them on the context
+    // Gets all the first-party cookies and sets them on the context.
+    // Intentional: only Orbite receives events from the browser, and downstream
+    // platforms get these cookies server-side from Orbite (see plugins/orbite).
+    // Oversized payloads are flagged by the Orbite plugin (MAX_EVENT_SIZE_KB).
     const cookies = jar.get()
     evtCtx.cookies = Object.keys(cookies).reduce((acc, key) => {
       acc[key] = cookies[key]

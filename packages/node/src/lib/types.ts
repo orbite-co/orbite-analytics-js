@@ -3,26 +3,25 @@ import { TokenManagerSettings } from './token-manager'
 
 export interface OAuthSettings {
   /**
-   * The OAuth App ID from Access Management under Workspace Settings in the Segment Dashboard.
+   * The OAuth App ID from Access Management under Workspace Settings in the Orbite Dashboard.
    */
   clientId: string
   /**
-   * The private key that matches the public key set in the OAuth app in the Segment Dashboard.
+   * The private key that matches the public key set in the OAuth app in the Orbite Dashboard.
    */
   clientKey: string
   /**
-   * The ID for the matching public key as given in the Segment Dashboard after it is uploaded.
+   * The ID for the matching public key as given in the Orbite Dashboard after it is uploaded.
    */
   keyId: string
   /**
-   * The Authorization server.  Defaults to https://oauth2.segment.io
-   * If your TAPI endpoint is not https://api.segment.io you will need to set this value.
-   * e.g. https://oauth2.eu1.segmentapis.com/ for TAPI endpoint https://events.eu1.segmentapis.com/
+   * The Authorization server (required). There is intentionally no default, so
+   * signed client assertions are never sent to a third-party (e.g. Segment) server.
    */
-  authServer?: string
+  authServer: string
   /**
    * The scope of permissions. Defaults to `tracking_api:write`.
-   * Must match a scope from the OAuth app settings in the Segment Dashboard.
+   * Must match a scope from the OAuth app settings in the Orbite Dashboard.
    */
   scope?: string
   /**

@@ -7,7 +7,6 @@ import {
 import { Context } from '../context'
 import {
   Callback,
-  JSONObject,
   Options,
   EventProperties,
   OrbiteEvent,
@@ -15,7 +14,7 @@ import {
   GroupTraits,
   UserTraits,
 } from '../events'
-import { ID, User } from '../user'
+import { ID, WithId } from '../user'
 
 /**
  * Helper for the track method
@@ -56,8 +55,8 @@ export function resolveArguments(
  * Helper for page, screen methods
  */
 export function resolvePageArguments(
-  category?: string | object,
-  name?: string | object | Callback,
+  category?: string | object | null,
+  name?: string | object | Callback | null,
   properties?: EventProperties | Options | Callback | null,
   options?: Options | Callback,
   callback?: Callback
@@ -68,38 +67,73 @@ export function resolvePageArguments(
   Options,
   Callback | undefined
 ] {
+  let resolvedProperties: EventProperties
+  let resolvedOptions: Options
   let resolvedCategory: string | undefined | null = null
   let resolvedName: string | undefined | null = null
   const args = [category, name, properties, options, callback]
 
+  // The legacy logic is basically:
+  // - If there is a string, it's the name
+  // - If there are two strings, it's category and name
   const strings = args.filter(isString)
-  if (strings[0] !== undefined && strings[1] !== undefined) {
-    resolvedCategory = strings[0]
-    resolvedName = strings[1]
-  }
-
   if (strings.length === 1) {
-    resolvedCategory = null
-    resolvedName = strings[0]
+    if (isString(args[1])) {
+      resolvedName = args[1]
+      resolvedCategory = null
+    } else {
+      resolvedName = strings[0]
+      resolvedCategory = null
+    }
+  } else if (strings.length === 2) {
+    if (typeof args[0] === 'string') {
+      resolvedCategory = args[0]
+    }
+    if (typeof args[1] === 'string') {
+      resolvedName = args[1]
+    }
   }
 
+  // handle: analytics.page('category', 'name', properties, options, callback)
   const resolvedCallback = args.find(isFunction) as Callback | undefined
 
-  const objects = args.filter((obj) => {
-    if (resolvedName === null) {
-      return isPlainObject(obj)
-    }
-    return isPlainObject(obj) || obj === null
-  }) as Array<JSONObject | null>
+  // handle:
+  // - analytics.page('name')
+  // - analytics.page('category', 'name')
+  // - analytics.page(properties)
+  // - analytics.page(properties, options)
+  // - analytics.page('name', properties)
+  // - analytics.page('name', properties, options)
+  // - analytics.page('category', 'name', properties, options)
+  // - analytics.page('category', 'name', properties, options, callback)
+  // - analytics.page('category', 'name', callback)
+  // - analytics.page(callback), etc
 
-  const resolvedProperties = (objects[0] ?? {}) as EventProperties
-  const resolvedOptions = (objects[1] ?? {}) as Options
+  // The legacy logic is basically:
+  // - If there is a plain object, it's the properties
+  // - If there are two plain objects, it's properties and options
+  const objects = args.filter(isPlainObject)
+  if (objects.length === 1) {
+    if (isPlainObject(args[2])) {
+      resolvedOptions = {}
+      resolvedProperties = args[2]
+    } else if (isPlainObject(args[3])) {
+      resolvedProperties = {}
+      resolvedOptions = args[3]
+    } else {
+      resolvedProperties = objects[0]
+      resolvedOptions = {}
+    }
+  } else if (objects.length === 2) {
+    resolvedProperties = objects[0]
+    resolvedOptions = objects[1]
+  }
 
   return [
     resolvedCategory,
     resolvedName,
-    resolvedProperties,
-    resolvedOptions,
+    (resolvedProperties ??= {}),
+    (resolvedOptions ??= {}),
     resolvedCallback,
   ]
 }
@@ -107,7 +141,7 @@ export function resolvePageArguments(
 /**
  * Helper for group, identify methods
  */
-export const resolveUserArguments = <T extends Traits, U extends User>(
+export const resolveUserArguments = <T extends Traits, U extends WithId>(
   user: U
 ): ResolveUser<T> => {
   return (...args): ReturnType<ResolveUser<T>> => {

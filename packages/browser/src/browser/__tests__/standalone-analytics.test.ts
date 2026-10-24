@@ -1,7 +1,6 @@
-// @ts-nocheck
 import jsdom, { JSDOM } from 'jsdom'
 import { InitOptions, getGlobalAnalytics } from '../../'
-import { AnalyticsBrowser, loadLegacySettings } from '../../browser'
+import { AnalyticsBrowser, loadCDNSettings } from '../../browser'
 import { snippet } from '../../tester/__fixtures__/snippet'
 import { install } from '../standalone-analytics'
 import unfetch from 'unfetch'
@@ -11,6 +10,7 @@ import * as Factory from '../../test-helpers/factories'
 import { EventQueue } from '../../core/queue/event-queue'
 import { AnalyticsStandalone } from '../standalone-interface'
 import { getBufferedPageCtxFixture } from '../../test-helpers/fixtures'
+import { setVersionType } from '../../lib/version-type'
 
 const track = jest.fn()
 const identify = jest.fn()
@@ -29,6 +29,7 @@ jest.mock('../../core/analytics', () => ({
     addSourceMiddleware,
     register,
     emit: jest.fn(),
+    ready: () => Promise.resolve(),
     on,
     queue: new EventQueue(new PersistedPriorityQueue(1, 'event-queue') as any),
     options,
@@ -42,16 +43,17 @@ jest.mock('unfetch', () => {
 })
 
 describe('standalone bundle', () => {
-  const mockObj = `foo`
+  const segmentDotCom = `foo`
 
   beforeEach(async () => {
+    setVersionType('web')
     ;(window as any).analytics = undefined
     const html = `
     <!DOCTYPE html>
       <head>
         <script>
           ${snippet(
-            mockObj,
+            segmentDotCom,
             true,
             `
             window.analytics.track('fruit basket', { fruits: ['🍌', '🍇'] })
@@ -72,7 +74,7 @@ describe('standalone bundle', () => {
     const jsd = new JSDOM(html, {
       runScripts: 'dangerously',
       resources: 'usable',
-      url: 'http://localhost:3000',
+      url: 'https://segment.com',
       virtualConsole,
     })
 
@@ -121,7 +123,7 @@ describe('standalone bundle', () => {
 
     await install()
 
-    expect(spy).toHaveBeenCalledWith(mockObj, {})
+    expect(spy).toHaveBeenCalledWith(segmentDotCom, {})
   })
 
   it('derives the CDN from scripts on the page', async () => {
@@ -130,7 +132,9 @@ describe('standalone bundle', () => {
       // @ts-ignore ignore Response required fields
       .mockImplementation((): Promise<Response> => fetchSettings)
 
-    await loadLegacySettings(mockObj)
+    const mockCdn = 'https://cdn.foo.com'
+
+    await loadCDNSettings(segmentDotCom, mockCdn)
 
     expect(unfetch).toHaveBeenCalledWith(
       'https://cdn.foo.com/v1/projects/foo/settings'
@@ -145,7 +149,7 @@ describe('standalone bundle', () => {
     const mockCdn = 'http://my-overridden-cdn.com'
 
     getGlobalAnalytics()!._cdn = mockCdn
-    await loadLegacySettings(mockObj)
+    await loadCDNSettings(segmentDotCom, mockCdn)
 
     expect(unfetch).toHaveBeenCalledWith(expect.stringContaining(mockCdn))
   })
@@ -170,7 +174,7 @@ describe('standalone bundle', () => {
     expect(identify).toHaveBeenCalledWith(
       'netto',
       {
-        employer: 'orbite',
+        employer: 'segment',
       },
       getBufferedPageCtxFixture()
     )
@@ -294,7 +298,7 @@ describe('standalone bundle', () => {
     expect(identify).toHaveBeenCalledWith(
       'netto',
       {
-        employer: 'orbite',
+        employer: 'segment',
       },
       getBufferedPageCtxFixture()
     )

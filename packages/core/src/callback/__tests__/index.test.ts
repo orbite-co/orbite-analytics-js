@@ -18,7 +18,7 @@ describe(invokeCallback, () => {
     expect(returned).toBe(ctx)
   })
 
-  // Fixes GitHub issue: https://github.com/segmentio/analytics-next/issues/409
+  // Fixes GitHub issue: https://github.com/orbite-co/orbite-analytics-js/issues/409
   // A.JS classic waited for the timeout/delay before invoking callback,
   // so keep same behavior in A.JS next.
   it('calls the callback after a delay', async () => {

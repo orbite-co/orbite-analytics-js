@@ -46,7 +46,7 @@ export const getCDN = (): string => {
     // it's possible that the CDN is not found in the page because:
     // - the script is loaded through a proxy
     // - the script is removed after execution
-    // in this case, we fall back to the default Segment CDN
+    // in this case, we fall back to the default Orbite CDN
     return `https://cdp.orbite.co`
   }
 }

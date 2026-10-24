@@ -6,4 +6,17 @@ describe('validateSettings', () => {
       /writeKey/i
     )
   })
+
+  it('should throw an error if oauth is enabled without an authServer', () => {
+    expect(() =>
+      validateSettings({
+        writeKey: 'foo',
+        oauthSettings: {
+          clientId: 'id',
+          clientKey: 'key',
+          keyId: 'kid',
+        } as any,
+      })
+    ).toThrowError(/authServer/i)
+  })
 })

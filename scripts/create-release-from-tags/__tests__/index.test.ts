@@ -15,11 +15,11 @@ describe('parseReleaseNotes', () => {
       "
           ### Minor Changes
 
-          * [#606](https://github.com/segmentio/analytics-next/pull/606) [\\\`b9c6356\\\`](https://github.com/segmentio/analytics-next/commit/b9c6356b7d35ee8acb6ecbd1eebc468d18d63958) Thanks [@silesky] - foo!)
+          * [#606](https://github.com/orbite-co/orbite-analytics-js/pull/606) [\\\`b9c6356\\\`](https://github.com/orbite-co/orbite-analytics-js/commit/b9c6356b7d35ee8acb6ecbd1eebc468d18d63958) Thanks [@silesky] - foo!)
 
           ### Patch Changes
 
-          * [#404](https://github.com/segmentio/analytics-next/pull/404) [\\\`b9abc6\\\`](https://github.com/segmentio/analytics-next/commit/b9c6356b7d35ee8acb6ecbd1eebc468d18d63958) Thanks [@silesky] - bar!)
+          * [#404](https://github.com/orbite-co/orbite-analytics-js/pull/404) [\\\`b9abc6\\\`](https://github.com/orbite-co/orbite-analytics-js/commit/b9c6356b7d35ee8acb6ecbd1eebc468d18d63958) Thanks [@silesky] - bar!)
       "
     `)
   })
@@ -30,11 +30,11 @@ describe('parseReleaseNotes', () => {
       "
           ### Minor Changes
 
-          * [#606](https://github.com/segmentio/analytics-next/pull/606) [\\\`b9c6356\\\`](https://github.com/segmentio/analytics-next/commit/b9c6356b7d35ee8acb6ecbd1eebc468d18d63958) Thanks [@silesky] - foo!)
+          * [#606](https://github.com/orbite-co/orbite-analytics-js/pull/606) [\\\`b9c6356\\\`](https://github.com/orbite-co/orbite-analytics-js/commit/b9c6356b7d35ee8acb6ecbd1eebc468d18d63958) Thanks [@silesky] - foo!)
 
           ### Patch Changes
 
-          * [#404](https://github.com/segmentio/analytics-next/pull/404) [\\\`b9abc6\\\`](https://github.com/segmentio/analytics-next/commit/b9c6356b7d35ee8acb6ecbd1eebc468d18d63958) Thanks [@silesky] - bar!)"
+          * [#404](https://github.com/orbite-co/orbite-analytics-js/pull/404) [\\\`b9abc6\\\`](https://github.com/orbite-co/orbite-analytics-js/commit/b9c6356b7d35ee8acb6ecbd1eebc468d18d63958) Thanks [@silesky] - bar!)"
     `)
   })
 })
@@ -42,7 +42,7 @@ describe('parseReleaseNotes', () => {
 describe('parseRawTags', () => {
   test('should work if all are on a single line', () => {
     const rawTags =
-      '@orbite/analytics-js@2.1.1 @segment/analytics-foo@1.0.1 @segment/analytics-core@1.0.0'
+      '@orbite/analytics-js@2.1.1 @segment/analytics-foo@1.0.1 @orbite/analytics-core@1.0.0'
     const tags = parseRawTags(rawTags)
     expect(tags).toMatchInlineSnapshot(`
       [
@@ -57,8 +57,8 @@ describe('parseRawTags', () => {
           "versionNumber": "1.0.1",
         },
         {
-          "name": "@segment/analytics-core",
-          "raw": "@segment/analytics-core@1.0.0",
+          "name": "@orbite/analytics-core",
+          "raw": "@orbite/analytics-core@1.0.0",
           "versionNumber": "1.0.0",
         },
       ]
@@ -67,7 +67,7 @@ describe('parseRawTags', () => {
   test('should work if there are multiple columns', () => {
     const rawTags = `
     @orbite/analytics-js@2.1.1  @segment/analytics-foo@1.0.1
-    @segment/analytics-core@1.0.0  @segment/analytics-bar@1.0.1
+    @orbite/analytics-core@1.0.0  @segment/analytics-bar@1.0.1
     `
     const tags = parseRawTags(rawTags)
     expect(tags).toMatchInlineSnapshot(`
@@ -83,8 +83,8 @@ describe('parseRawTags', () => {
           "versionNumber": "1.0.1",
         },
         {
-          "name": "@segment/analytics-core",
-          "raw": "@segment/analytics-core@1.0.0",
+          "name": "@orbite/analytics-core",
+          "raw": "@orbite/analytics-core@1.0.0",
           "versionNumber": "1.0.0",
         },
         {
@@ -99,7 +99,7 @@ describe('parseRawTags', () => {
     const rawTags = `
     @orbite/analytics-js@2.1.1  @segment/analytics-foo@1.0.1 @segment/analytics-bar@1.0.1
     @orbite/analytics-js@2.1.1  @segment/analytics-baz@1.0.1 @segment/analytics-foobar@1.0.1
-    @segment/analytics-core@1.0.0
+    @orbite/analytics-core@1.0.0
     `
     const tags = parseRawTags(rawTags)
     expect(tags).toMatchInlineSnapshot(`
@@ -135,8 +135,8 @@ describe('parseRawTags', () => {
           "versionNumber": "1.0.1",
         },
         {
-          "name": "@segment/analytics-core",
-          "raw": "@segment/analytics-core@1.0.0",
+          "name": "@orbite/analytics-core",
+          "raw": "@orbite/analytics-core@1.0.0",
           "versionNumber": "1.0.0",
         },
       ]
@@ -145,7 +145,7 @@ describe('parseRawTags', () => {
   test('should work if there is newline characters', () => {
     const rawTags = `
     @orbite/analytics-js@2.1.1
-    @segment/analytics-core@1.0.0
+    @orbite/analytics-core@1.0.0
     `
     const tags = parseRawTags(rawTags)
     expect(tags).toMatchInlineSnapshot(`
@@ -156,8 +156,8 @@ describe('parseRawTags', () => {
           "versionNumber": "2.1.1",
         },
         {
-          "name": "@segment/analytics-core",
-          "raw": "@segment/analytics-core@1.0.0",
+          "name": "@orbite/analytics-core",
+          "raw": "@orbite/analytics-core@1.0.0",
           "versionNumber": "1.0.0",
         },
       ]

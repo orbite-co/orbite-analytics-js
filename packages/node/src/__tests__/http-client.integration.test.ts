@@ -16,9 +16,9 @@ const helpers = {
       analytics.track({ event: 'foo', userId: 'bar' }, resolve)
     ),
   assertFetchCallRequest: (
-    ...[url, options]: NonNullable<(typeof testFetch)['mock']['lastCall']>
+    ...[url, options]: NonNullable<typeof testFetch['mock']['lastCall']>
   ) => {
-    expect(url).toBe('https://api.segment.io/v1/batch')
+    expect(url).toBe('https://cdp.orbite.co/v1/batch')
     expect(options.headers).toEqual({
       'Content-Type': 'application/json',
       'User-Agent': 'analytics-node-next/latest',

@@ -1,7 +1,9 @@
 /** @type { import('eslint').Linter.Config } */
 module.exports = {
   root: true,
-  ignorePatterns: ['node_modules', 'dist'],
+  ignorePatterns: require('eslint-gitignore').readGitignoreFiles({
+    cwd: __dirname,
+  }),
   parserOptions: {
     ecmaVersion: 2020,
   },
@@ -67,7 +69,7 @@ module.exports = {
                     // Prevent accidental imports from 'lodash'
                     name: 'lodash',
                     message:
-                      'Lodash should only be used for dev-related things, and not in any public library src code (e.g. @segment/analytics-next)',
+                      'Lodash should only be used for dev-related things, and not in any public library src code (e.g. @orbite/analytics-js)',
                   },
                 ],
               },

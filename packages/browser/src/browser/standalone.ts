@@ -2,18 +2,17 @@
 import { getCDN, setGlobalCDNUrl } from '../lib/parse-cdn'
 import { setVersionType } from '../lib/version-type'
 
-if (process.env.ASSET_PATH) {
-  if (process.env.ASSET_PATH === '/dist/umd/') {
+if (process.env.IS_WEBPACK_BUILD) {
+  if (process.env.ASSET_PATH) {
     // @ts-ignore
-    __webpack_public_path__ = '/dist/umd/'
+    __webpack_public_path__ = process.env.ASSET_PATH
   } else {
     const cdn = getCDN()
     setGlobalCDNUrl(cdn)
 
+    // Lazy-loaded chunks must be deployed under `<cdn>/analytics-js/bundles/`.
     // @ts-ignore
-    __webpack_public_path__ = cdn
-      ? cdn + '/cdp/analytics-js/'
-      : 'https://cdp.orbite.co/analytics-js/'
+    __webpack_public_path__ = cdn + '/analytics-js/bundles/'
   }
 }
 
