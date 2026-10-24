@@ -4,7 +4,12 @@ import { trackEventSmall } from '../server/fixtures'
 
 startServer()
   .then((app) => {
-    const analytics = new Analytics('foo', { flushInterval: 1000, flushAt: 15 })
+    const analytics = new Analytics('foo', {
+      // legacy baseline SDK defaults to Segment's API; point it at the mocked Orbite host
+      host: 'https://cdp.orbite.co',
+      flushInterval: 1000,
+      flushAt: 15,
+    })
     app.get('/', (_, res) => {
       analytics.track(trackEventSmall)
       res.sendStatus(200)
