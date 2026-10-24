@@ -28,12 +28,6 @@ jobs:
       - run: yarn turbo run --filter='./packages/node*' lint
       - run: COVERAGE=true yarn turbo run --filter='./packages/node*' test
       - run: yarn turbo run --filter='./packages/node-integration-tests' test:perf-and-durability
-      - uses: codecov/codecov-action@v5
-        with:
-          fail_ci_if_error: true
-          flags: node
-          directory: ./packages/node/coverage
-          token: ${{ secrets.CODECOV_TOKEN }}
   analytics-node-cf-workers:
     name: 'analytics-node QA (Cloudflare Workers)'
     runs-on: ubuntu-latest
