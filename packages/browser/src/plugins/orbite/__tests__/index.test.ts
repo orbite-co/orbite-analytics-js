@@ -68,6 +68,25 @@ describe('Orbite', () => {
       const [url] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(`"http://cdp.orbite.co/v1/p"`)
     })
+
+    it('should use the protocol when batching', async () => {
+      const analytics = new Analytics({ writeKey: 'foo' })
+      const plugin = await orbite(
+        analytics,
+        {
+          apiKey: 'foo',
+          protocol: 'http',
+          deliveryStrategy: { strategy: 'batching', config: { size: 1 } },
+        },
+        cdnSettingsMinimal.integrations
+      )
+      await analytics.register(plugin, envEnrichment)
+
+      await analytics.track('event')
+
+      const [url] = spyMock.mock.calls[0]
+      expect(url).toBe('http://cdp.orbite.co/v1/b')
+    })
   })
 
   describe('configuring fetch credentials', () => {

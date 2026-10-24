@@ -1,7 +1,13 @@
 import { fetch } from '../../lib/fetch'
 import { RateLimitError } from './ratelimit-error'
 import { createHeaders, StandardDispatcherConfig } from './shared-dispatcher'
-export type Dispatcher = (url: string, body: object) => Promise<unknown>
+import type { Context } from '../../core/context'
+
+export type Dispatcher = (
+  url: string,
+  body: object,
+  ctx?: Context
+) => Promise<unknown>
 
 export default function (config?: StandardDispatcherConfig): {
   dispatch: Dispatcher

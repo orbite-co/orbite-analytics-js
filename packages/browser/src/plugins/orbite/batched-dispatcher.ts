@@ -31,32 +31,59 @@ function passedKeepaliveLimit(buffer: unknown): boolean {
   return kilobytes(buffer) >= MAX_KEEPALIVE_SIZE - 10
 }
 
+/**
+ * Splits events into chunks that each stay under the keepalive size limit.
+ * (A single event larger than the limit still gets its own chunk.)
+ */
 function chunks(batch: object[]): Array<object[]> {
   const result: object[][] = []
-  let index = 0
+  let current: object[] = []
 
   batch.forEach((item) => {
-    const size = kilobytes(result[index])
-    if (size >= 64) {
-      index++
+    if (current.length && kilobytes([...current, item]) >= MAX_KEEPALIVE_SIZE) {
+      result.push(current)
+      current = []
     }
-
-    if (result[index]) {
-      result[index].push(item)
-    } else {
-      result[index] = [item]
-    }
+    current.push(item)
   })
+
+  if (current.length) {
+    result.push(current)
+  }
 
   return result
 }
 
+export type BatchingDispatchOptions = {
+  /**
+   * @default 'https'
+   */
+  protocol?: string
+  /**
+   * Called with the contexts of events this dispatcher gave up on (retries exhausted, or
+   * not sendable during page unload), so the caller can persist and retry them.
+   */
+  onUndelivered?: (ctxs: Context[]) => void
+}
+
 export default function batch(
   apiHost: string,
-  config?: BatchingDispatchConfig
+  config?: BatchingDispatchConfig,
+  options?: BatchingDispatchOptions
 ) {
   let buffer: object[] = []
   let pageUnloaded = false
+  const url = `${options?.protocol ?? 'https'}://${apiHost}/b`
+  const contexts = new WeakMap<object, Context>()
+
+  function handOff(events: object[]): void {
+    const ctxs = events
+      .map((event) => contexts.get(event))
+      .filter((ctx): ctx is Context => ctx !== undefined)
+    if (ctxs.length) {
+      options?.onUndelivered?.(ctxs)
+    }
+  }
 
   const limit = config?.size ?? 10
   const timeout = config?.timeout ?? 5000
@@ -75,7 +102,7 @@ export default function batch(
       return newEvent
     })
 
-    return fetch(`https://${apiHost}/b`, {
+    return fetch(url, {
       credentials: config?.credentials,
       keepalive: config?.keepalive || pageUnloaded,
       headers: createHeaders(config?.headers),
@@ -127,6 +154,8 @@ export default function batch(
             }
           })
           scheduleFlush(attempt + 1)
+        } else {
+          handOff(batch)
         }
       })
     }
@@ -153,12 +182,34 @@ export default function batch(
     pageUnloaded = unloaded
 
     if (pageUnloaded && buffer.length) {
-      const reqs = chunks(buffer).map(sendBatch)
-      Promise.all(reqs).catch(console.error)
+      const pending = chunks(buffer)
+      buffer = []
+
+      if (!options?.onUndelivered) {
+        Promise.all(pending.map(sendBatch)).catch(console.error)
+        return
+      }
+
+      // The keepalive budget (64KB) is shared by all in-flight requests, so only the
+      // first chunk can reliably go out now. The rest are handed back to be persisted
+      // and sent on the next page load (or when the page becomes visible again).
+      const [first, ...rest] = pending
+      rest.forEach(handOff)
+      sendBatch(first)?.catch((error) => {
+        console.error(error)
+        handOff(first)
+      })
     }
   })
 
-  async function dispatch(_url: string, body: object): Promise<unknown> {
+  async function dispatch(
+    _url: string,
+    body: object,
+    ctx?: Context
+  ): Promise<unknown> {
+    if (ctx) {
+      contexts.set(body, ctx)
+    }
     buffer.push(body)
 
     const bufferOverflow =

@@ -109,6 +109,27 @@ export function orbite(
 
   const writeKey = settings?.apiKey ?? ''
 
+  const apiHost = settings?.apiHost ?? ORBITE_API_HOST
+  const protocol = settings?.protocol ?? 'https'
+  const remote = `${protocol}://${apiHost}`
+
+  // Also created before the buffer: the batching dispatcher's unload handler must run
+  // before the buffer persists, so events it hands back are saved for the next page load.
+  const deliveryStrategy = settings?.deliveryStrategy
+  const client =
+    deliveryStrategy &&
+    'strategy' in deliveryStrategy &&
+    deliveryStrategy.strategy === 'batching'
+      ? batch(apiHost, deliveryStrategy.config, {
+          protocol,
+          onUndelivered: (ctxs) => {
+            ctxs.forEach((ctx) => buffer.pushWithBackoff(ctx))
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            scheduleFlush(flushing, buffer, orbite, scheduleFlush)
+          },
+        })
+      : standard(deliveryStrategy?.config)
+
   const buffer = analytics.options.disableClientPersistence
     ? new PriorityQueue<Context>(analytics.queue.queue.maxAttempts, [])
     : new PersistedPriorityQueue(
@@ -118,18 +139,6 @@ export function orbite(
 
   const inflightEvents = new Set<Context>()
   const flushing = false
-
-  const apiHost = settings?.apiHost ?? ORBITE_API_HOST
-  const protocol = settings?.protocol ?? 'https'
-  const remote = `${protocol}://${apiHost}`
-
-  const deliveryStrategy = settings?.deliveryStrategy
-  const client =
-    deliveryStrategy &&
-    'strategy' in deliveryStrategy &&
-    deliveryStrategy.strategy === 'batching'
-      ? batch(apiHost, deliveryStrategy.config)
-      : standard(deliveryStrategy?.config)
 
   async function send(ctx: Context): Promise<Context> {
     if (isOffline()) {
@@ -162,7 +171,7 @@ export function orbite(
     flagOversizedPayload(ctx, payload)
 
     return client
-      .dispatch(`${remote}/${path}`, payload)
+      .dispatch(`${remote}/${path}`, payload, ctx)
       .then(() => ctx)
       .catch((error) => {
         ctx.log('error', 'Error sending event', error)
