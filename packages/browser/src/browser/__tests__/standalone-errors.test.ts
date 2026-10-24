@@ -1,13 +1,16 @@
 import jsdom, { JSDOM } from 'jsdom'
-import { AnalyticsBrowser, LegacySettings } from '..'
+import { AnalyticsBrowser, CDNSettings } from '..'
 import { snippet } from '../../tester/__fixtures__/snippet'
 import { pWhile } from '../../lib/p-while'
 import unfetch from 'unfetch'
 import { RemoteMetrics } from '../../core/stats/remote-metrics'
 import * as Factory from '../../test-helpers/factories'
+import { cdnSettingsMinimal } from '../../test-helpers/fixtures'
 
-const cdnResponse: LegacySettings = {
+const cdnResponse: CDNSettings = {
+  ...cdnSettingsMinimal,
   integrations: {
+    ...cdnSettingsMinimal.integrations,
     Zapier: {
       type: 'server',
     },

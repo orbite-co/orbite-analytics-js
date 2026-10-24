@@ -2,7 +2,6 @@ import {
   CoreOptions,
   CoreOrbiteEvent,
   Callback,
-  Integrations,
   Plan,
   TrackPlan,
   PlanEvent,
@@ -24,7 +23,6 @@ export type EventProperties = Record<string, any>
 export interface OrbiteEvent extends CoreOrbiteEvent {}
 
 export type {
-  Integrations,
   Plan,
   TrackPlan,
   PlanEvent,

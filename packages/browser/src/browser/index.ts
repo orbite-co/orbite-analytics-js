@@ -1,28 +1,13 @@
 import { getProcessEnv } from '../lib/get-process-env'
 import { getCDN, setGlobalCDNUrl } from '../lib/parse-cdn'
-
-import { fetch } from '../lib/fetch'
-import {
-  Analytics,
-  AnalyticsSettings,
-  NullAnalytics,
-  InitOptions,
-} from '../core/analytics'
+import { Analytics, NullAnalytics } from '../core/analytics'
 import { Context } from '../core/context'
-import { Plan } from '../core/events'
 import { Plugin } from '../core/plugin'
-import { MetricsOptions } from '../core/stats/remote-metrics'
 import { mergedOptions } from '../lib/merged-options'
 import { createDeferred } from '@segment/analytics-generic-utils'
 import { envEnrichment } from '../plugins/env-enrichment'
-import {
-  PluginFactory,
-  remoteLoader,
-  RemotePlugin,
-} from '../plugins/remote-loader'
-import type { RoutingRule } from '../plugins/routing-middleware'
+import { PluginFactory, remoteLoader } from '../plugins/remote-loader'
 import { orbite, OrbiteSettings } from '../plugins/orbite'
-import { validation } from '../plugins/validation'
 import {
   AnalyticsBuffered,
   PreInitMethodCallBuffer,
@@ -31,98 +16,21 @@ import {
   flushSetAnonymousID,
   flushOn,
   PreInitMethodCall,
+  flushRegister,
 } from '../core/buffer'
 import { ClassicIntegrationSource } from '../plugins/ajs-destination/types'
 import { attachInspector } from '../core/inspector'
 import { Stats } from '../core/stats'
 import { setGlobalAnalyticsKey } from '../lib/global-analytics-helper'
+import { CDNSettings, AnalyticsBrowserSettings, InitOptions } from './settings'
+import { fetch } from '../lib/fetch'
 
-export interface LegacyIntegrationConfiguration {
-  /* @deprecated - This does not indicate browser types anymore */
-  type?: string
+export type { CDNSettings, AnalyticsBrowserSettings }
 
-  versionSettings?: {
-    version?: string
-    override?: string
-    componentTypes?: Array<'browser' | 'android' | 'ios' | 'server'>
-  }
-
-  bundlingStatus?: string
-
-  /**
-   * Consent settings for the integration
-   */
-  consentSettings?: {
-    /**
-     * Consent categories for the integration
-     * @example ["Analytics", "Advertising", "CAT001"]
-     */
-    categories: string[]
-  }
-
-  // Orbite specific
-  retryQueue?: boolean
-
-  // any extra unknown settings
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any
-}
-
-export interface LegacySettings {
-  integrations: {
-    [name: string]: LegacyIntegrationConfiguration
-  }
-
-  middlewareSettings?: {
-    routingRules: RoutingRule[]
-  }
-
-  enabledMiddleware?: Record<string, boolean>
-  metrics?: MetricsOptions
-
-  plan?: Plan
-
-  legacyVideoPluginsEnabled?: boolean
-
-  remotePlugins?: RemotePlugin[]
-
-  /**
-   * Top level consent settings
-   */
-  consentSettings?: {
-    /**
-     * All unique consent categories for enabled destinations.
-     * There can be categories in this array that are important for consent that are not included in any integration  (e.g. 2 cloud mode categories).
-     * @example ["Analytics", "Advertising", "CAT001"]
-     */
-    allCategories: string[]
-
-    /**
-     * Whether or not there are any unmapped destinations for enabled destinations.
-     */
-    hasUnmappedDestinations: boolean
-  }
-}
-
-export interface AnalyticsBrowserSettings extends AnalyticsSettings {
-  /**
-   * The settings for the Orbite Source.
-   * If provided, `AnalyticsBrowser` will not fetch remote settings
-   * for the source.
-   */
-  cdnSettings?: LegacySettings & Record<string, unknown>
-  /**
-   * If provided, will override the default Orbite CDN (https://cdp.orbite.co) for this application.
-   */
-  cdnURL?: string
-}
-
-export function loadLegacySettings(
+export function loadCDNSettings(
   writeKey: string,
-  cdnURL?: string
-): Promise<LegacySettings> {
-  const baseUrl = cdnURL ?? getCDN()
-
+  baseUrl: string
+): Promise<CDNSettings> {
   return fetch(`${baseUrl}/v1/projects/${writeKey}/settings`)
     .then((res) => {
       if (!res.ok) {
@@ -138,7 +46,7 @@ export function loadLegacySettings(
     })
 }
 
-function hasLegacyDestinations(settings: LegacySettings): boolean {
+function hasLegacyDestinations(settings: CDNSettings): boolean {
   return (
     getProcessEnv().NODE_ENV !== 'test' &&
     // just one integration means orbite
@@ -146,7 +54,7 @@ function hasLegacyDestinations(settings: LegacySettings): boolean {
   )
 }
 
-function hasTsubMiddleware(settings: LegacySettings): boolean {
+function hasTsubMiddleware(settings: CDNSettings): boolean {
   return (
     getProcessEnv().NODE_ENV !== 'test' &&
     (settings.middlewareSettings?.routingRules?.length ?? 0) > 0
@@ -174,26 +82,40 @@ function flushPreBuffer(
  */
 async function flushFinalBuffer(
   analytics: Analytics,
+  queryString: string,
   buffer: PreInitMethodCallBuffer
 ): Promise<void> {
-  // Call popSnippetWindowBuffer before each flush task since there may be
-  // analytics calls during async function calls.
-  await flushAddSourceMiddleware(analytics, buffer)
+  await flushQueryString(analytics, queryString)
   flushAnalyticsCallsInNewTask(analytics, buffer)
-  // Clear buffer, just in case analytics is loaded twice; we don't want to fire events off again.
-  buffer.clear()
+}
+
+const getQueryString = (): string => {
+  const hash = window.location.hash ?? ''
+  const search = window.location.search ?? ''
+  const term = search.length ? search : hash.replace(/(?=#).*(?=\?)/, '')
+  return term
+}
+
+const flushQueryString = async (
+  analytics: Analytics,
+  queryString: string
+): Promise<void> => {
+  if (queryString.includes('ajs_')) {
+    await analytics.queryString(queryString).catch(console.error)
+  }
 }
 
 async function registerPlugins(
   writeKey: string,
-  legacySettings: LegacySettings,
+  cdnSettings: CDNSettings,
   analytics: Analytics,
-  opts: InitOptions,
   options: InitOptions,
   pluginLikes: (Plugin | PluginFactory)[] = [],
-  legacyIntegrationSources: ClassicIntegrationSource[]
+  legacyIntegrationSources: ClassicIntegrationSource[],
+  preInitBuffer: PreInitMethodCallBuffer
 ): Promise<Context> {
-  const plugins = pluginLikes?.filter(
+  flushPreBuffer(analytics, preInitBuffer)
+  const pluginsFromSettings = pluginLikes?.filter(
     (pluginLike) => typeof pluginLike === 'object'
   ) as Plugin[]
 
@@ -203,33 +125,31 @@ async function registerPlugins(
       typeof pluginLike.pluginName === 'string'
   ) as PluginFactory[]
 
-  const tsubMiddleware = hasTsubMiddleware(legacySettings)
+  const tsubMiddleware = hasTsubMiddleware(cdnSettings)
     ? await import(
         /* webpackChunkName: "tsub-middleware" */ '../plugins/routing-middleware'
       ).then((mod) => {
-        return mod.tsubMiddleware(
-          legacySettings.middlewareSettings!.routingRules
-        )
+        return mod.tsubMiddleware(cdnSettings.middlewareSettings!.routingRules)
       })
     : undefined
 
   const legacyDestinations =
-    hasLegacyDestinations(legacySettings) || legacyIntegrationSources.length > 0
+    hasLegacyDestinations(cdnSettings) || legacyIntegrationSources.length > 0
       ? await import(
           /* webpackChunkName: "ajs-destination" */ '../plugins/ajs-destination'
         ).then((mod) => {
           return mod.ajsDestinations(
             writeKey,
-            legacySettings,
+            cdnSettings,
             analytics.integrations,
-            opts,
+            options,
             tsubMiddleware,
             legacyIntegrationSources
           )
         })
       : []
 
-  if (legacySettings.legacyVideoPluginsEnabled) {
+  if (cdnSettings.legacyVideoPluginsEnabled) {
     await import(
       /* webpackChunkName: "legacyVideos" */ '../plugins/legacy-video-plugins'
     ).then((mod) => {
@@ -237,54 +157,56 @@ async function registerPlugins(
     })
   }
 
-  const schemaFilter = opts.plan?.track
+  const schemaFilter = options.plan?.track
     ? await import(
         /* webpackChunkName: "schemaFilter" */ '../plugins/schema-filter'
       ).then((mod) => {
-        return mod.schemaFilter(opts.plan?.track, legacySettings)
+        return mod.schemaFilter(options.plan?.track, cdnSettings)
       })
     : undefined
 
-  const mergedSettings = mergedOptions(legacySettings, options)
+  const mergedSettings = mergedOptions(cdnSettings, options)
   const remotePlugins = await remoteLoader(
-    legacySettings,
+    cdnSettings,
     analytics.integrations,
     mergedSettings,
-    options.obfuscate,
+    options,
     tsubMiddleware,
     pluginSources
   ).catch(() => [])
 
-  const toRegister = [
-    validation,
-    envEnrichment,
-    ...plugins,
-    ...legacyDestinations,
-    ...remotePlugins,
-  ]
+  const basePlugins = [envEnrichment, ...legacyDestinations, ...remotePlugins]
 
   if (schemaFilter) {
-    toRegister.push(schemaFilter)
+    basePlugins.push(schemaFilter)
   }
 
-  const shouldIgnore =
-    (opts.integrations?.All === false && !opts.integrations['Orbite']) ||
-    (opts.integrations && opts.integrations['Orbite'] === false)
+  const shouldIgnoreOrbite =
+    (options.integrations?.All === false && !options.integrations['Orbite']) ||
+    (options.integrations && options.integrations['Orbite'] === false)
 
-  if (!shouldIgnore) {
-    toRegister.push(
+  if (!shouldIgnoreOrbite) {
+    basePlugins.push(
       await orbite(
         analytics,
-        mergedSettings['Orbite'] as OrbiteSettings,
-        legacySettings.integrations
+        mergedSettings['Orbite'],
+        cdnSettings.integrations
       )
     )
   }
 
-  const ctx = await analytics.register(...toRegister)
+  // order is important here, (for example, if there are multiple enrichment plugins, the last registered plugin will have access to the last context.)
+  const ctx = await analytics.register(
+    // register 'core' plugins and those via destinations
+    ...basePlugins,
+    // register user-defined plugins passed into AnalyticsBrowser.load({ plugins: [plugin1, plugin2] }) -- relevant to npm-only
+    ...pluginsFromSettings
+  )
+  // register user-defined plugins registered via analytics.register()
+  await flushRegister(analytics, preInitBuffer)
 
   if (
-    Object.entries(legacySettings.enabledMiddleware ?? {}).some(
+    Object.entries(cdnSettings.enabledMiddleware ?? {}).some(
       ([, enabled]) => enabled
     )
   ) {
@@ -293,7 +215,7 @@ async function registerPlugins(
     ).then(async ({ remoteMiddlewares }) => {
       const middleware = await remoteMiddlewares(
         ctx,
-        legacySettings,
+        cdnSettings,
         options.obfuscate
       )
       const promises = middleware.map((mdw) =>
@@ -302,6 +224,9 @@ async function registerPlugins(
       return Promise.all(promises)
     })
   }
+
+  // register any user-defined plugins added via analytics.addSourceMiddleware()
+  await flushAddSourceMiddleware(analytics, preInitBuffer)
 
   return ctx
 }
@@ -323,75 +248,80 @@ async function loadAnalytics(
 
   if (options.initialPageview) {
     // capture the page context early, so it's always up-to-date
-    preInitBuffer.push(new PreInitMethodCall('page', []))
+    preInitBuffer.add(new PreInitMethodCall('page', []))
   }
 
-  let legacySettings =
-    settings.cdnSettings ??
-    (await loadLegacySettings(settings.writeKey, settings.cdnURL))
+  // reading the query string as early as possible in case the URL changes
+  const queryString = getQueryString()
+
+  const cdnURL = settings.cdnURL ?? getCDN()
+  let cdnSettings =
+    settings.cdnSettings ?? (await loadCDNSettings(settings.writeKey, cdnURL))
 
   if (options.updateCDNSettings) {
-    legacySettings = options.updateCDNSettings(legacySettings)
+    cdnSettings = options.updateCDNSettings(cdnSettings)
   }
 
   // if options.disable is a function, we allow user to disable analytics based on CDN Settings
   if (typeof options.disable === 'function') {
-    const disabled = await options.disable(legacySettings)
+    const disabled = await options.disable(cdnSettings)
     if (disabled) {
       return [new NullAnalytics(), Context.system()]
     }
   }
 
   const retryQueue: boolean =
-    legacySettings.integrations['Orbite']?.retryQueue ?? true
+    cdnSettings.integrations['Orbite']?.retryQueue ?? true
 
-  const opts: InitOptions = { retryQueue, ...options }
-  const analytics = new Analytics(settings, opts)
+  options = {
+    retryQueue,
+    ...options,
+  }
+
+  const analytics = new Analytics({ ...settings, cdnSettings, cdnURL }, options)
 
   attachInspector(analytics)
 
   const plugins = settings.plugins ?? []
 
   const classicIntegrations = settings.classicIntegrations ?? []
-  Stats.initRemoteMetrics(legacySettings.metrics)
 
-  // needs to be flushed before plugins are registered
-  flushPreBuffer(analytics, preInitBuffer)
+  const segmentLoadOptions = options.integrations?.['Orbite'] as
+    | OrbiteSettings
+    | undefined
+
+  Stats.initRemoteMetrics({
+    ...cdnSettings.metrics,
+    host: segmentLoadOptions?.apiHost ?? cdnSettings.metrics?.host,
+    protocol: segmentLoadOptions?.protocol,
+  })
 
   const ctx = await registerPlugins(
     settings.writeKey,
-    legacySettings,
+    cdnSettings,
     analytics,
-    opts,
     options,
     plugins,
-    classicIntegrations
+    classicIntegrations,
+    preInitBuffer
   )
-
-  const search = window.location.search ?? ''
-  const hash = window.location.hash ?? ''
-
-  const term = search.length ? search : hash.replace(/(?=#).*(?=\?)/, '')
-
-  if (term.includes('ajs_')) {
-    await analytics.queryString(term).catch(console.error)
-  }
 
   analytics.initialized = true
   analytics.emit('initialize', settings, options)
-
-  await flushFinalBuffer(analytics, preInitBuffer)
+  await flushFinalBuffer(analytics, queryString, preInitBuffer)
 
   return [analytics, ctx]
 }
 
 /**
- * The public browser interface for Orbite
+ * The public browser interface for Orbite Analytics
  *
  * @example
  * ```ts
  *  export const analytics = new AnalyticsBrowser()
  *  analytics.load({ writeKey: 'foo' })
+ * ```
+ * @link https://github.com/orbite-co/orbite-analytics-js/#readme
  */
 export class AnalyticsBrowser extends AnalyticsBuffered {
   private _resolveLoadStart: (
@@ -416,7 +346,7 @@ export class AnalyticsBrowser extends AnalyticsBuffered {
   /**
    * Fully initialize an analytics instance, including:
    *
-   * * Fetching settings from the CDN (by default).
+   * * Fetching settings from the segment CDN (by default).
    * * Fetching all remote destinations configured by the user (if applicable).
    * * Flushing buffered analytics events.
    * * Loading all middleware.

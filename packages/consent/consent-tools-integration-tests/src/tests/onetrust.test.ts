@@ -1,33 +1,21 @@
-/**
- * Tests targeting @segment/analytics-consent-wrapper-onetrust
- */
+import { test, expect } from '@playwright/test'
+import OneTrustPage from '../page-objects/onetrust'
+test.describe('OneTrust Consent Tests', () => {
+  let pageObject: OneTrustPage
 
-import page from '../page-objects/onetrust'
-import { expect } from 'expect'
+  test.beforeEach(async ({ page }) => {
+    pageObject = new OneTrustPage(page)
+    await pageObject.load()
+  })
 
-declare global {
-  interface Window {
-    _segmentConsentCalls: number
-  }
-}
+  test.afterEach(async () => {
+    await pageObject.cleanup()
+  })
 
-afterEach(async () => {
-  await page.clearStorage()
-})
-
-it('should send a consent changed event when user clicks accept on popup', async () => {
-  await page.load()
-
-  const { getConsentChangedCallCount } = await page.detectConsentChanged()
-
-  await browser.pause(1000)
-  await expect(getConsentChangedCallCount()).resolves.toBe(0)
-
-  // make a consent selection in the OneTrust popup
-  await page.clickAcceptButtonAndClosePopup()
-
-  // 1 consent changed event should now be sent
-  await browser.waitUntil(
-    async () => (await getConsentChangedCallCount()) === 1
-  )
+  test('should send a consent changed event when user clicks accept on popup', async () => {
+    expect(pageObject.getConsentChangedEvents().length).toBe(0)
+    await pageObject.openAlertBoxIfNeeded()
+    await pageObject.clickConfirmButtonAndClosePopup()
+    await expect.poll(() => pageObject.getConsentChangedEvents().length).toBe(1)
+  })
 })

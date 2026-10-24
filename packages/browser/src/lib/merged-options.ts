@@ -1,5 +1,5 @@
-import { JSONObject, Options } from '../core/events/interfaces'
-import { LegacySettings } from '../browser'
+import { Options } from '../core/events/interfaces'
+import { CDNSettings } from '../browser'
 
 /**
  * Merge legacy settings and initialized Integration option overrides.
@@ -11,9 +11,9 @@ import { LegacySettings } from '../browser'
  * the Analytics constructor.
  */
 export function mergedOptions(
-  settings: LegacySettings,
+  cdnSettings: CDNSettings,
   options: Options
-): Record<string, JSONObject> {
+): Record<string, any> {
   const optionOverrides = Object.entries(options.integrations ?? {}).reduce(
     (overrides, [integration, options]) => {
       if (typeof options === 'object') {
@@ -28,10 +28,10 @@ export function mergedOptions(
         [integration]: {},
       }
     },
-    {} as Record<string, JSONObject>
+    {} as Record<string, any>
   )
 
-  return Object.entries(settings.integrations).reduce(
+  return Object.entries(cdnSettings.integrations).reduce(
     (integrationSettings, [integration, settings]) => {
       return {
         ...integrationSettings,
@@ -41,6 +41,6 @@ export function mergedOptions(
         },
       }
     },
-    {} as Record<string, JSONObject>
+    {} as Record<string, any>
   )
 }

@@ -2,15 +2,19 @@ import { Plugin } from '../../../core/plugin'
 import { Analytics } from '../../../core/analytics'
 import { Context } from '../../../core/context'
 import { schemaFilter } from '..'
-import { LegacySettings } from '../../../browser'
+import { CDNSettings } from '../../../browser'
 import { orbite, OrbiteSettings } from '../../orbite'
+import { cdnSettingsMinimal } from '../../../test-helpers/fixtures'
 
-const settings: LegacySettings = {
+const settings: CDNSettings = {
+  ...cdnSettingsMinimal,
   integrations: {
+    ...cdnSettingsMinimal.integrations,
     'Braze Web Mode (Actions)': {},
     // note that Fullstory's name here doesn't contain 'Actions'
     Fullstory: {},
-    Orbite: {},
+    'Google Analytics': {},
+    'Google Analytics 4 Web': {},
   },
   remotePlugins: [
     {
@@ -35,7 +39,7 @@ const settings: LegacySettings = {
     {
       // note that Fullstory name contains 'Actions'
       name: 'Fullstory (Actions)',
-      creationName: 'Fullstory (Actions)',
+      creationName: 'Fullstory',
       libraryName: 'fullstoryDestination',
       url: 'https://cdp.orbite.co/next-integrations/actions/fullstory/35ea1d304f85f3306f48.js',
       settings: {
@@ -45,6 +49,19 @@ const settings: LegacySettings = {
           },
           {
             partnerAction: 'identifyUser',
+          },
+        ],
+      },
+    },
+    {
+      name: 'Google Analytics 4 Web',
+      creationName: 'Google Analytics 4 Web',
+      libraryName: 'google-analytics-4-webDestination',
+      url: 'https://cdp.orbite.co/next-integrations/actions/google-analytics-4-web/bfab87631cbcb7d70964.js',
+      settings: {
+        subscriptions: [
+          {
+            partnerAction: 'Custom Event',
           },
         ],
       },
@@ -92,10 +109,15 @@ const fullstory: Plugin = {
   name: 'Fullstory (Actions) trackEvent',
 }
 
+const ga4: Plugin = {
+  ...trackEvent,
+  name: 'Google Analytics 4 Web Custom Event',
+}
+
 describe('schema filter', () => {
   let options: OrbiteSettings
   let filterXt: Plugin
-  let orbiteco: Plugin
+  let segment: Plugin
   let ajs: Analytics
 
   beforeEach(async () => {
@@ -104,15 +126,16 @@ describe('schema filter', () => {
 
     options = { apiKey: 'foo' }
     ajs = new Analytics({ writeKey: options.apiKey })
-    orbiteco = await orbite(ajs, options, {})
+    segment = await orbite(ajs, options, settings.integrations)
     filterXt = schemaFilter({}, settings)
 
-    jest.spyOn(orbiteco, 'track')
+    jest.spyOn(segment, 'track')
     jest.spyOn(trackEvent, 'track')
     jest.spyOn(trackPurchase, 'track')
     jest.spyOn(updateUserProfile, 'track')
     jest.spyOn(amplitude, 'track')
     jest.spyOn(fullstory, 'track')
+    jest.spyOn(ga4, 'track')
   })
 
   describe('plugins and destinations', () => {
@@ -123,7 +146,7 @@ describe('schema filter', () => {
 
     it('does not drop events when no plan is defined', async () => {
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -132,7 +155,7 @@ describe('schema filter', () => {
 
       await ajs.track('A Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
       expect(updateUserProfile.track).toHaveBeenCalled()
@@ -140,7 +163,7 @@ describe('schema filter', () => {
 
     it('drops an event when the event is disabled', async () => {
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -160,7 +183,7 @@ describe('schema filter', () => {
 
       await ajs.track('hi')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
 
       expect(trackEvent.track).not.toHaveBeenCalled()
@@ -170,7 +193,7 @@ describe('schema filter', () => {
 
     it('does not drop events with different names', async () => {
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -188,7 +211,7 @@ describe('schema filter', () => {
 
       await ajs.track('Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
@@ -197,7 +220,7 @@ describe('schema filter', () => {
 
     it('does not drop events with same name when unplanned events are disallowed', async () => {
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -216,7 +239,7 @@ describe('schema filter', () => {
 
       await ajs.track('Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
@@ -225,7 +248,7 @@ describe('schema filter', () => {
 
     it('drop events with different names when unplanned events are disallowed', async () => {
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -244,7 +267,7 @@ describe('schema filter', () => {
 
       await ajs.track('Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(amplitude.track).not.toHaveBeenCalled()
       expect(trackEvent.track).not.toHaveBeenCalled()
       expect(trackPurchase.track).not.toHaveBeenCalled()
@@ -253,7 +276,7 @@ describe('schema filter', () => {
 
     it('drops enabled event for matching destination', async () => {
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -271,7 +294,7 @@ describe('schema filter', () => {
 
       await ajs.track('Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
       expect(updateUserProfile.track).toHaveBeenCalled()
@@ -291,7 +314,7 @@ describe('schema filter', () => {
       )
 
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -301,7 +324,7 @@ describe('schema filter', () => {
 
       await ajs.track('Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
       expect(updateUserProfile.track).toHaveBeenCalled()
@@ -320,7 +343,7 @@ describe('schema filter', () => {
       )
 
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -330,7 +353,7 @@ describe('schema filter', () => {
 
       await ajs.track('Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
       expect(updateUserProfile.track).toHaveBeenCalled()
@@ -349,7 +372,7 @@ describe('schema filter', () => {
       )
 
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -360,7 +383,7 @@ describe('schema filter', () => {
       const ctx = await ajs.track('Track Event')
 
       expect(ctx.event.integrations).toEqual({ amplitude: true })
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
     })
 
     it('sets event integrations object when integration is disabled', async () => {
@@ -375,7 +398,7 @@ describe('schema filter', () => {
       )
 
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -385,7 +408,7 @@ describe('schema filter', () => {
 
       const ctx = await ajs.track('Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
       expect(updateUserProfile.track).toHaveBeenCalled()
@@ -406,7 +429,7 @@ describe('schema filter', () => {
       )
 
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -445,7 +468,7 @@ describe('schema filter', () => {
       )
 
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -455,7 +478,7 @@ describe('schema filter', () => {
 
       await ajs.track('Track Event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
 
       expect(trackEvent.track).not.toHaveBeenCalled()
@@ -464,7 +487,7 @@ describe('schema filter', () => {
 
       await ajs.track('a non blocked event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
 
       expect(trackEvent.track).toHaveBeenCalled()
@@ -472,7 +495,7 @@ describe('schema filter', () => {
       expect(updateUserProfile.track).toHaveBeenCalled()
     })
 
-    it('covers different names between remote plugins and integrations', async () => {
+    it('works when current name differs from creation name', async () => {
       const filterXt = schemaFilter(
         {
           hi: {
@@ -487,7 +510,7 @@ describe('schema filter', () => {
       )
 
       await ajs.register(
-        orbiteco,
+        segment,
         trackEvent,
         trackPurchase,
         updateUserProfile,
@@ -498,7 +521,7 @@ describe('schema filter', () => {
 
       await ajs.track('hi')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
@@ -508,13 +531,33 @@ describe('schema filter', () => {
 
       await ajs.track('a non blocked event')
 
-      expect(orbiteco.track).toHaveBeenCalled()
+      expect(segment.track).toHaveBeenCalled()
       expect(amplitude.track).toHaveBeenCalled()
 
       expect(trackEvent.track).toHaveBeenCalled()
       expect(trackPurchase.track).toHaveBeenCalled()
       expect(updateUserProfile.track).toHaveBeenCalled()
       expect(fullstory.track).toHaveBeenCalled()
+    })
+
+    it('doesnt block destinations with similar names', async () => {
+      const filterXt = schemaFilter(
+        {
+          hi: {
+            enabled: true,
+            integrations: {
+              'Google Analytics': false,
+            },
+          },
+        },
+        settings
+      )
+
+      await ajs.register(segment, ga4, filterXt)
+
+      await ajs.track('hi')
+
+      expect(ga4.track).toHaveBeenCalled()
     })
   })
 })

@@ -1,4 +1,5 @@
 import { fetch } from '../../lib/fetch'
+import { ORBITE_API_HOST } from '../constants'
 import { version } from '../../generated/version'
 import { getVersionType } from '../../lib/version-type'
 
@@ -7,6 +8,7 @@ export interface MetricsOptions {
   sampleRate?: number
   flushTimer?: number
   maxQueueSize?: number
+  protocol?: 'http' | 'https'
 }
 
 /**
@@ -55,15 +57,17 @@ export class RemoteMetrics {
   private host: string
   private flushTimer: number
   private maxQueueSize: number
+  private protocol: string
 
   sampleRate: number
   queue: RemoteMetric[]
 
   constructor(options?: MetricsOptions) {
-    this.host = options?.host ?? 'cdp.orbite.co/v1'
+    this.host = options?.host ?? ORBITE_API_HOST
     this.sampleRate = options?.sampleRate ?? 1
     this.flushTimer = options?.flushTimer ?? 30 * 1000 /* 30s */
     this.maxQueueSize = options?.maxQueueSize ?? 20
+    this.protocol = options?.protocol ?? 'https'
 
     this.queue = []
 
@@ -129,7 +133,7 @@ export class RemoteMetrics {
     this.queue = []
 
     const headers = { 'Content-Type': 'text/plain' }
-    const url = `https://${this.host}/m`
+    const url = `${this.protocol}://${this.host}/m`
 
     return fetch(url, {
       headers,

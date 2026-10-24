@@ -35,17 +35,21 @@ test-unit: node_modules ## Runs unit tests
 	$(yarn_run) test
 .PHONY: test-unit
 
-test-coverage: node_modules ## Runs unit tests with coverage
-	$(yarn_run) test --coverage --forceExit
-.PHONY: test-coverage
-
 test-qa: build-browser ## Runs all QA tests in a single command
-	$(yarn_run) test --runTestsByPath qa/__tests__/*.test.ts --testPathIgnorePatterns qa/__tests__/destinations.test.ts --reporters="default" --reporters="<rootDir>/qa/lib/jest-reporter.js" ${args}
-.PHONY: test-coverage
+	COVERAGE=false $(yarn_run) test --runTestsByPath qa/__tests__/*.test.ts --testPathIgnorePatterns qa/__tests__/destinations.test.ts --reporters="default" --reporters="<rootDir>/qa/lib/jest-reporter.js" ${args}
+.PHONY: test-qa
 
 test-qa-destinations: build-browser ## Runs Destination QA tests. options. DESTINATION=amplitude DEBUG=true
-	$(yarn_run) test --forceExit --runTestsByPath qa/__tests__/destinations.test.ts --reporters="default" --reporters="<rootDir>/qa/lib/jest-reporter.js" ${args}
-.PHONY: test-coverage
+	COVERAGE=false $(yarn_run) test --forceExit --runTestsByPath qa/__tests__/destinations.test.ts --reporters="default" --reporters="<rootDir>/qa/lib/jest-reporter.js" ${args}
+.PHONY: test-qa-destinations
+
+test-integration: build ## Runs all integration tests in a single command
+	COVERAGE=false $(yarn_run) test --forceExit --runTestsByPath e2e-tests/**/*.test.ts ${args}
+.PHONY: test-integration
+
+test-perf: build ## Runs all integration tests in a single command
+	$(yarn_run) test --forceExit --runTestsByPath e2e-tests/performance/*.test.ts ${args}
+.PHONY: test-perf
 
 lint: node_modules ## Lints the source code
 	$(yarn_run) lint
@@ -54,6 +58,19 @@ lint: node_modules ## Lints the source code
 ci:
 	bash ./scripts/ci.sh
 .PHONY: ci
+
+handshake:
+	@echo "📡  Establishing Remote connection"
+	@robo --config ~/dev/src/github.com/segmentio/robofiles/development/robo.yml prod.ssh echo "✅ Connected"
+.PHONY: handshake
+
+rebuild-sources-prod: handshake ## Rebuilds all sources that are using ajs-next
+	@aws-okta exec prod-privileged -- ./scripts/ajs-sources.js
+.PHONY: rebuild-sources-prod
+
+rebuild-sources-stage: # Rebuilds all sources that are using ajs-next in stage
+	@robo --config ~/dev/src/github.com/segmentio/robofiles/development/robo.yml rebuild-all-stage
+.PHONY: rebuild-sources-stage
 
 analyze:
 	NODE_ENV=production $(BIN)/webpack --profile --json > stats.json && $(BIN)/webpack-bundle-analyzer --port 4200 stats.json

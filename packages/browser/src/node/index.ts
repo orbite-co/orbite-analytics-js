@@ -27,9 +27,7 @@ export class AnalyticsNode {
       version: 'latest',
     }
 
-    const ctx = await analytics.register(
-      analyticsNode(nodeSettings)
-    )
+    const ctx = await analytics.register(analyticsNode(nodeSettings))
     analytics.emit('initialize', settings, cookieOptions ?? {})
 
     return [analytics, ctx]

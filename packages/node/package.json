@@ -20,7 +20,7 @@
     "node": ">=20"
   },
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@orbite-co/analytics-node",
+    ".": "yarn run -T turbo run --filter=@orbite/analytics-node",
     "test": "yarn jest",
     "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
     "build": "rm -rf dist && yarn concurrently 'yarn:build:*'",
@@ -46,7 +46,7 @@
   "devDependencies": {
     "@internal/config": "0.0.0",
     "@types/node": "^18",
-    "axios": "^1.6.0"
+    "axios": "^1.6.2"
   },
   "packageManager": "yarn@3.4.1"
 }

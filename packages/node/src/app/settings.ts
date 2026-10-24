@@ -56,4 +56,10 @@ export const validateSettings = (settings: AnalyticsSettings) => {
   if (!settings.writeKey) {
     throw new ValidationError('writeKey', 'writeKey is missing.')
   }
+  if (settings.oauthSettings && !settings.oauthSettings.authServer) {
+    throw new ValidationError(
+      'oauthSettings.authServer',
+      'oauthSettings.authServer is required when OAuth is enabled.'
+    )
+  }
 }

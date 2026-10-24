@@ -85,7 +85,7 @@ export class TokenManager implements ITokenManager {
     this.keyId = props.keyId
     this.clientId = props.clientId
     this.clientKey = props.clientKey
-    this.authServer = props.authServer ?? 'https://oauth2.segment.io'
+    this.authServer = props.authServer
     this.scope = props.scope ?? 'tracking_api:write'
     this.httpClient = props.httpClient
     this.maxRetries = props.maxRetries

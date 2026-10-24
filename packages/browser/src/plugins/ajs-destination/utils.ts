@@ -1,9 +1,9 @@
-import { Integrations } from '@orbite/analytics-core'
-import { LegacyIntegrationConfiguration } from '../..'
+import { RemoteIntegrationSettings } from '../..'
+import { IntegrationsInitOptions } from '../../browser/settings'
 
 export const isInstallableIntegration = (
   name: string,
-  integrationSettings: LegacyIntegrationConfiguration
+  integrationSettings: RemoteIntegrationSettings
 ) => {
   const { type, bundlingStatus, versionSettings } = integrationSettings
   // We use `!== 'unbundled'` (versus `=== 'bundled'`) to be inclusive of
@@ -20,13 +20,10 @@ export const isInstallableIntegration = (
 
 export const isDisabledIntegration = (
   integrationName: string,
-  globalIntegrations: Integrations
+  integrations: IntegrationsInitOptions
 ) => {
   const allDisableAndNotDefined =
-    globalIntegrations.All === false &&
-    globalIntegrations[integrationName] === undefined
+    integrations.All === false && integrations[integrationName] === undefined
 
-  return (
-    globalIntegrations[integrationName] === false || allDisableAndNotDefined
-  )
+  return integrations[integrationName] === false || allDisableAndNotDefined
 }

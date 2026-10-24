@@ -4,6 +4,7 @@ jest.mock('unfetch', () => {
   return fetch
 })
 
+import { createSuccess } from '../../../test-helpers/factories'
 import batch from '../batched-dispatcher'
 
 const fatEvent = {
@@ -52,6 +53,7 @@ describe('Batching', () => {
     jest.useFakeTimers({
       now: new Date('9 Jun 1993 00:00:00Z').getTime(),
     })
+    fetch.mockReturnValue(createSuccess({}))
   })
 
   afterEach(() => {
@@ -95,11 +97,13 @@ describe('Batching', () => {
         "https://https://cdp.orbite.co/b",
         {
           "body": "{"batch":[{"event":"first"},{"event":"second"},{"event":"third"}],"sentAt":"1993-06-09T00:00:00.000Z"}",
+          "credentials": undefined,
           "headers": {
             "Content-Type": "text/plain",
           },
           "keepalive": false,
           "method": "post",
+          "priority": undefined,
         },
       ]
     `)
@@ -120,6 +124,31 @@ describe('Batching', () => {
     expect(fetch).not.toHaveBeenCalled()
 
     for (let i = 0; i < 250; i++) {
+      await dispatch(`https://cdp.orbite.co/v1/t`, {
+        event: 'fat event',
+        properties: fatEvent,
+      })
+    }
+
+    // still called, even though our batch limit is 600 events
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('sends requests if the size of events exceeds keepalive limits', async () => {
+    const { dispatch } = batch(`https://cdp.orbite.co`, {
+      size: 600,
+      keepalive: true,
+    })
+
+    // fatEvent is about ~1kb in size
+    for (let i = 0; i < 250; i++) {
+      await dispatch(`https://cdp.orbite.co/v1/t`, {
+        event: 'small event',
+      })
+    }
+    expect(fetch).not.toHaveBeenCalled()
+
+    for (let i = 0; i < 65; i++) {
       await dispatch(`https://cdp.orbite.co/v1/t`, {
         event: 'fat event',
         properties: fatEvent,
@@ -153,11 +182,13 @@ describe('Batching', () => {
         "https://https://cdp.orbite.co/b",
         {
           "body": "{"batch":[{"event":"first"},{"event":"second"}],"sentAt":"1993-06-09T00:00:10.000Z"}",
+          "credentials": undefined,
           "headers": {
             "Content-Type": "text/plain",
           },
           "keepalive": false,
           "method": "post",
+          "priority": undefined,
         },
       ]
     `)
@@ -188,11 +219,13 @@ describe('Batching', () => {
         "https://https://cdp.orbite.co/b",
         {
           "body": "{"batch":[{"event":"first"}],"sentAt":"1993-06-09T00:00:10.000Z"}",
+          "credentials": undefined,
           "headers": {
             "Content-Type": "text/plain",
           },
           "keepalive": false,
           "method": "post",
+          "priority": undefined,
         },
       ]
     `)
@@ -202,11 +235,13 @@ describe('Batching', () => {
         "https://https://cdp.orbite.co/b",
         {
           "body": "{"batch":[{"event":"second"}],"sentAt":"1993-06-09T00:00:21.000Z"}",
+          "credentials": undefined,
           "headers": {
             "Content-Type": "text/plain",
           },
           "keepalive": false,
           "method": "post",
+          "priority": undefined,
         },
       ]
     `)
@@ -233,11 +268,13 @@ describe('Batching', () => {
         "https://https://cdp.orbite.co/b",
         {
           "body": "{"batch":[{"event":"first"},{"event":"second"}],"sentAt":"1993-06-09T00:00:00.000Z"}",
+          "credentials": undefined,
           "headers": {
             "Content-Type": "text/plain",
           },
           "keepalive": false,
           "method": "post",
+          "priority": undefined,
         },
       ]
     `)

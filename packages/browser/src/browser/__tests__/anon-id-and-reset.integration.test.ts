@@ -15,7 +15,14 @@ const helpers = {
       .mockImplementation(() => createSuccess({ integrations: {} }))
   },
   loadAnalytics() {
-    return AnalyticsBrowser.load({ writeKey: 'foo' })
+    return AnalyticsBrowser.load(
+      { writeKey: 'foo' },
+      {
+        integrations: {
+          Orbite: {},
+        },
+      }
+    )
   },
 }
 

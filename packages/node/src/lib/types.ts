@@ -15,10 +15,10 @@ export interface OAuthSettings {
    */
   keyId: string
   /**
-   * The Authorization server.  Defaults to https://oauth2.segment.io
-   * If your TAPI endpoint is not https://cdp.orbite.co you will need to set this value.
+   * The Authorization server (required). There is intentionally no default, so
+   * signed client assertions are never sent to a third-party (e.g. Segment) server.
    */
-  authServer?: string
+  authServer: string
   /**
    * The scope of permissions. Defaults to `tracking_api:write`.
    * Must match a scope from the OAuth app settings in the Orbite Dashboard.

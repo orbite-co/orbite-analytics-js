@@ -3,7 +3,7 @@ import {
   resolvePageArguments,
   resolveUserArguments,
   resolveAliasArguments,
-} from '../'
+} from '../index'
 import { Callback } from '../../events'
 import { User } from '../../user'
 
@@ -195,24 +195,7 @@ describe(resolveArguments, () => {
 })
 
 describe(resolvePageArguments, () => {
-  test('should accept (category, name, properties, options, callback)', () => {
-    const fn = jest.fn()
-    const [category, name, properties, options, cb] = resolvePageArguments(
-      'category',
-      'name',
-      bananaPhone,
-      baseOptions,
-      fn
-    )
-
-    expect(category).toEqual('category')
-    expect(name).toEqual('name')
-    expect(properties).toEqual(bananaPhone)
-    expect(options).toEqual(baseOptions)
-    expect(cb).toEqual(fn)
-  })
-
-  test('empty strings ("", "", "", { integrations })', () => {
+  test('empty strings ("", "", null, { integrations })', () => {
     const [category, name, properties, options] = resolvePageArguments(
       '',
       '',
@@ -236,6 +219,37 @@ describe(resolvePageArguments, () => {
         },
       },
     })
+    expect(properties).toEqual({})
+  })
+
+  it('should accept (category, name)', () => {
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      'category',
+      'name'
+    )
+
+    expect(name).toEqual('name')
+    expect(category).toEqual('category')
+    expect(properties).toEqual({})
+    expect(options).toEqual({})
+    expect(cb).toEqual(undefined)
+  })
+
+  it('should accept (category, name, properties, options, cb)', () => {
+    const fn = jest.fn()
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      'foo',
+      'name',
+      bananaPhone,
+      baseOptions,
+      fn
+    )
+
+    expect(category).toEqual('foo')
+    expect(name).toEqual('name')
+    expect(properties).toEqual(bananaPhone)
+    expect(options).toEqual(baseOptions)
+    expect(cb).toEqual(fn)
   })
 
   test('should accept (category, name, properties, callback)', () => {
@@ -269,6 +283,19 @@ describe(resolvePageArguments, () => {
     expect(cb).toEqual(fn)
 
     expect(options).toEqual({})
+  })
+
+  it('should accept (name, properties)', () => {
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      'name',
+      bananaPhone
+    )
+
+    expect(name).toEqual('name')
+    expect(category).toEqual(null)
+    expect(properties).toEqual(bananaPhone)
+    expect(options).toEqual({})
+    expect(cb).toEqual(undefined)
   })
 
   it('should accept (name, properties, options, callback)', () => {
@@ -346,6 +373,152 @@ describe(resolvePageArguments, () => {
     expect(options).toEqual({})
     expect(name).toEqual(null)
     expect(category).toEqual(null)
+  })
+
+  test('should accept (null, name, properties, options, callback)', () => {
+    const fn = jest.fn()
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      null,
+      'name',
+      bananaPhone,
+      baseOptions,
+      fn
+    )
+
+    expect(category).toEqual(null)
+    expect(name).toEqual('name')
+    expect(properties).toEqual(bananaPhone)
+    expect(options).toEqual(baseOptions)
+    expect(cb).toEqual(fn)
+  })
+
+  test('should accept (name, null, properties, options, callback)', () => {
+    const fn = jest.fn()
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      'name',
+      null,
+      bananaPhone,
+      baseOptions,
+      fn
+    )
+
+    expect(category).toEqual(null)
+    expect(name).toEqual('name')
+    expect(properties).toEqual(bananaPhone)
+    expect(options).toEqual(baseOptions)
+    expect(cb).toEqual(fn)
+  })
+
+  test('should accept (name, null, properties)', () => {
+    const [category, name, properties, options] = resolvePageArguments(
+      'name',
+      null,
+      bananaPhone
+    )
+
+    expect(name).toEqual('name')
+    expect(category).toEqual(null)
+    expect(properties).toEqual(bananaPhone)
+    expect(options).toEqual({})
+  })
+
+  test('should accept (name, null, null, options)', () => {
+    const [category, name, properties, options] = resolvePageArguments(
+      'name',
+      null,
+      null,
+      baseOptions
+    )
+
+    expect(name).toEqual('name')
+    expect(category).toEqual(null)
+    expect(properties).toEqual({})
+    expect(options).toEqual(baseOptions)
+  })
+
+  test('should accept (null, null, properties)', () => {
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      null,
+      null,
+      bananaPhone
+    )
+
+    expect(category).toEqual(null)
+    expect(name).toEqual(null)
+    expect(properties).toEqual(bananaPhone)
+    expect(options).toEqual({})
+    expect(cb).toEqual(undefined)
+  })
+
+  test('should accept (null, null, properties, options, callback)', () => {
+    const fn = jest.fn()
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      null,
+      null,
+      bananaPhone,
+      baseOptions,
+      fn
+    )
+
+    expect(category).toEqual(null)
+    expect(name).toEqual(null)
+    expect(properties).toEqual(bananaPhone)
+    expect(options).toEqual(baseOptions)
+    expect(cb).toEqual(fn)
+  })
+
+  test('should accept (null, null, null, options, callback)', () => {
+    const fn = jest.fn()
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      null,
+      null,
+      null,
+      baseOptions,
+      fn
+    )
+
+    expect(category).toEqual(null)
+    expect(name).toEqual(null)
+    expect(properties).toEqual({})
+    expect(options).toEqual(baseOptions)
+    expect(cb).toEqual(fn)
+  })
+
+  test('should accept (undefined, undefined, undefined, options, callback)', () => {
+    const fn = jest.fn()
+    const [category, name, properties, options, cb] = resolvePageArguments(
+      undefined,
+      undefined,
+      undefined,
+      baseOptions,
+      fn
+    )
+
+    expect(category).toEqual(null)
+    expect(name).toEqual(null)
+    expect(properties).toEqual({})
+    expect(options).toEqual(baseOptions)
+    expect(cb).toEqual(fn)
+  })
+
+  test('should accept (callback)', () => {
+    const fn = jest.fn()
+    const [category, name, properties, options, cb] = resolvePageArguments(fn)
+    expect(category).toEqual(null)
+    expect(name).toEqual(null)
+    expect(properties).toEqual({})
+    expect(options).toEqual({})
+    expect(cb).toEqual(fn)
+  })
+
+  test('should accept (null, null, null, null, callback)', () => {
+    const fn = jest.fn()
+    const [category, name, properties, options, cb] = resolvePageArguments(fn)
+    expect(category).toEqual(null)
+    expect(name).toEqual(null)
+    expect(properties).toEqual({})
+    expect(options).toEqual({})
+    expect(cb).toEqual(fn)
   })
 })
 

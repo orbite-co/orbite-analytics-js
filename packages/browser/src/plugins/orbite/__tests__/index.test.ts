@@ -1,11 +1,11 @@
-// @ts-nocheck
 import assert from 'assert'
 import unfetch from 'unfetch'
-import { orbite, OrbiteSettings } from '..'
+import { orbite, OrbiteSettings, MAX_EVENT_SIZE_KB } from '..'
 import { Analytics } from '../../../core/analytics'
 import { Plugin } from '../../../core/plugin'
 import { envEnrichment } from '../../env-enrichment'
 import cookie from 'js-cookie'
+import { cdnSettingsMinimal } from '../../../test-helpers/fixtures'
 
 jest.mock('unfetch', () => {
   return jest.fn()
@@ -14,7 +14,7 @@ jest.mock('unfetch', () => {
 describe('Orbite', () => {
   let options: OrbiteSettings
   let analytics: Analytics
-  let orbiteco: Plugin
+  let segment: Plugin
   let spyMock: jest.SpyInstance
 
   beforeEach(async () => {
@@ -23,9 +23,9 @@ describe('Orbite', () => {
 
     options = { apiKey: 'foo' }
     analytics = new Analytics({ writeKey: options.apiKey })
-    orbiteco = await orbite(analytics, options, {})
+    segment = await orbite(analytics, options, cdnSettingsMinimal.integrations)
 
-    await analytics.register(orbiteco, envEnrichment)
+    await analytics.register(segment, envEnrichment)
 
     window.localStorage.clear()
 
@@ -55,8 +55,12 @@ describe('Orbite', () => {
         protocol: 'http',
       }
       const analytics = new Analytics({ writeKey: options.apiKey })
-      const orbiteco = await orbite(analytics, options, {})
-      await analytics.register(orbiteco, envEnrichment)
+      const segment = await orbite(
+        analytics,
+        options,
+        cdnSettingsMinimal.integrations
+      )
+      await analytics.register(segment, envEnrichment)
 
       // @ts-ignore test a valid ajsc page call
       await analytics.page(null, { foo: 'bar' })
@@ -66,7 +70,116 @@ describe('Orbite', () => {
     })
   })
 
-  describe('configuring a keep alive', () => {
+  describe('configuring fetch credentials', () => {
+    it('should accept fetch credentials configuration', async () => {
+      const analytics = new Analytics({ writeKey: 'foo' })
+
+      await analytics.register(
+        await orbite(analytics, {
+          apiKey: '',
+          deliveryStrategy: {
+            config: {
+              credentials: 'include',
+            },
+          },
+        })
+      )
+
+      await analytics.track('foo')
+      const [_, params] = spyMock.mock.lastCall
+      expect(params.credentials).toBe('include')
+    })
+  })
+
+  describe('configuring headers', () => {
+    it('should accept additional headers', async () => {
+      const analytics = new Analytics({ writeKey: 'foo' })
+
+      await analytics.register(
+        await orbite(analytics, {
+          apiKey: '',
+          deliveryStrategy: {
+            config: {
+              headers: {
+                'X-My-Header': 'foo',
+              },
+            },
+          },
+        })
+      )
+
+      await analytics.track('foo')
+      const [_, params] = spyMock.mock.lastCall
+      expect(params.headers['X-My-Header']).toBe('foo')
+      expect(params.headers['Content-Type']).toBe('text/plain')
+    })
+
+    it('should allow additional headers to be a function', async () => {
+      const analytics = new Analytics({ writeKey: 'foo' })
+
+      await analytics.register(
+        await orbite(analytics, {
+          apiKey: '',
+          deliveryStrategy: {
+            config: {
+              headers: () => ({
+                'X-My-Header': 'foo',
+              }),
+            },
+          },
+        })
+      )
+
+      await analytics.track('foo')
+      const [_, params] = spyMock.mock.lastCall
+      expect(params.headers['X-My-Header']).toBe('foo')
+      expect(params.headers['Content-Type']).toBe('text/plain')
+    })
+
+    it('should allow content type to be overridden', async () => {
+      const analytics = new Analytics({ writeKey: 'foo' })
+
+      await analytics.register(
+        await orbite(analytics, {
+          apiKey: '',
+          deliveryStrategy: {
+            config: {
+              headers: () => ({
+                'Content-Type': 'bar',
+              }),
+            },
+          },
+        })
+      )
+
+      await analytics.track('foo')
+      const [_, params] = spyMock.mock.lastCall
+      expect(params.headers['Content-Type']).toBe('bar')
+    })
+  })
+
+  describe('configuring fetch priority', () => {
+    it('should accept fetch priority configuration', async () => {
+      const analytics = new Analytics({ writeKey: 'foo' })
+
+      await analytics.register(
+        await orbite(analytics, {
+          apiKey: '',
+          deliveryStrategy: {
+            config: {
+              priority: 'high',
+            },
+          },
+        })
+      )
+
+      await analytics.track('foo')
+      const [_, params] = spyMock.mock.lastCall
+      expect(params.priority).toBe('high')
+    })
+  })
+
+  describe('configuring keepalive', () => {
     it('should accept keepalive configuration', async () => {
       const analytics = new Analytics({ writeKey: 'foo' })
 
@@ -89,10 +202,10 @@ describe('Orbite', () => {
     it('should default to no keepalive', async () => {
       const analytics = new Analytics({ writeKey: 'foo' })
 
-      const orbiteco = await orbite(analytics, {
+      const segment = await orbite(analytics, {
         apiKey: '',
       })
-      await analytics.register(await orbiteco)
+      await analytics.register(await segment)
       await analytics.track('foo')
 
       const [_, params] = spyMock.mock.lastCall
@@ -285,6 +398,32 @@ describe('Orbite', () => {
       const body = JSON.parse(params.body)
 
       assert(body.properties.foo === 'bar')
+    })
+  })
+
+  describe('payload size', () => {
+    it('flags payloads above MAX_EVENT_SIZE_KB but still sends them', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      cookie.set('big_cookie', 'x'.repeat(3000))
+      const ctx = await analytics.track('event', {
+        blob: 'y'.repeat(MAX_EVENT_SIZE_KB * 1024),
+      })
+
+      expect(spyMock).toHaveBeenCalledTimes(1)
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('Orbite event payload is')
+      )
+      expect(ctx.logs().some((l) => l.level === 'warn')).toBe(true)
+    })
+
+    it('does not flag regular payloads', async () => {
+      const ctx = await analytics.track('event', { small: true })
+      expect(spyMock).toHaveBeenCalledTimes(1)
+      expect(
+        ctx
+          .logs()
+          .some((l) => String(l.message).includes('Orbite event payload'))
+      ).toBe(false)
     })
   })
 })

@@ -1,7 +1,15 @@
-import { AnalyticsBrowserSettings } from '../..'
+import { CDNSettings } from '../../browser/settings'
+import type { RemotePlugin } from '../../plugins/remote-loader'
 import { mockIntegrationName } from './classic-destination'
 
-type CDNSettings = NonNullable<AnalyticsBrowserSettings['cdnSettings']>
+export const cdnSettingsMinimal: CDNSettings = {
+  integrations: {
+    Orbite: {
+      apiKey: 'my-writekey',
+    },
+    [mockIntegrationName]: {},
+  },
+}
 
 export const cdnSettingsKitchenSink: CDNSettings = {
   integrations: {
@@ -294,8 +302,15 @@ export const cdnSettingsKitchenSink: CDNSettings = {
   remotePlugins: [],
 }
 
-export const cdnSettingsMinimal: CDNSettings = {
-  integrations: {
-    [mockIntegrationName]: {},
-  },
+export const createRemotePlugin = (
+  name: string,
+  creationName?: string
+): RemotePlugin => {
+  return {
+    name,
+    url: 'https://foo.com/v1/projects/abc/plugins/def.js',
+    creationName: creationName || name,
+    libraryName: name,
+    settings: {},
+  }
 }

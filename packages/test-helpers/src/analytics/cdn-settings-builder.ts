@@ -1,5 +1,5 @@
-import type { LegacySettings } from '@orbite/analytics-js'
-type RemotePlugin = NonNullable<LegacySettings['remotePlugins']>[0]
+import type { CDNSettings } from '@orbite/analytics-js'
+type RemotePlugin = NonNullable<CDNSettings['remotePlugins']>[0]
 
 export type DestinationSettingsBuilderConfig = Partial<RemotePlugin> & {
   creationName: string
@@ -11,23 +11,24 @@ export type DestinationSettingsBuilderConfig = Partial<RemotePlugin> & {
 }
 
 export class CDNSettingsBuilder {
-  private settings: LegacySettings
+  private settings: CDNSettings
   constructor({
     writeKey,
     baseCDNSettings,
   }: {
     writeKey?: string
-    baseCDNSettings?: LegacySettings
+    baseCDNSettings?: Partial<CDNSettings>
   } = {}) {
-    const settings = baseCDNSettings || {
+    const settings: CDNSettings = {
       integrations: {
         Orbite: {
-          apiKey: writeKey,
+          apiKey: writeKey || '',
           unbundledIntegrations: [],
           addBundledMetadata: true,
           maybeBundledConfigIds: {},
           versionSettings: { version: '4.4.7', componentTypes: ['browser'] },
           apiHost: 'cdp.orbite.co/v1',
+          ...baseCDNSettings?.integrations?.['Orbite'],
         },
       },
       plan: {
@@ -40,6 +41,8 @@ export class CDNSettingsBuilder {
       metrics: { sampleRate: 0.1, host: 'cdp.orbite.co/v1' },
       legacyVideoPluginsEnabled: false,
       remotePlugins: [],
+      edgeFunction: {},
+      ...baseCDNSettings,
     }
     this.settings = settings
   }

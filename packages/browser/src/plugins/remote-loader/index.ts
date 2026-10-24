@@ -1,7 +1,6 @@
-import type { Integrations } from '../../core/events/interfaces'
-import { LegacySettings } from '../../browser'
+import { CDNSettings } from '../../browser'
 import { JSONObject, JSONValue } from '../../core/events'
-import { DestinationPlugin, Plugin } from '../../core/plugin'
+import { Plugin, InternalPluginWithAddMiddleware } from '../../core/plugin'
 import { loadScript } from '../../lib/load-script'
 import { getCDN } from '../../lib/parse-cdn'
 import {
@@ -9,8 +8,10 @@ import {
   DestinationMiddlewareFunction,
 } from '../middleware'
 import { Context, ContextCancelation } from '../../core/context'
-import { Analytics } from '../../core/analytics'
 import { recordIntegrationMetric } from '../../core/stats/metric-helpers'
+import { Analytics, InitOptions } from '../../core/analytics'
+import { createDeferred } from '@segment/analytics-generic-utils'
+import { IntegrationsInitOptions } from '../../browser/settings'
 
 export interface RemotePlugin {
   /** The name of the remote plugin */
@@ -25,12 +26,18 @@ export interface RemotePlugin {
   settings: JSONObject
 }
 
-export class ActionDestination implements DestinationPlugin {
+export class ActionDestination implements InternalPluginWithAddMiddleware {
   name: string // destination name
   version = '1.0.0'
+  /**
+   * The lifecycle name of the wrapped plugin.
+   * This does not need to be 'destination', and can be 'enrichment', etc.
+   */
   type: Plugin['type']
 
   alternativeNames: string[] = []
+
+  private loadPromise = createDeferred<unknown>()
 
   middleware: DestinationMiddlewareFunction[] = []
 
@@ -44,6 +51,7 @@ export class ActionDestination implements DestinationPlugin {
   }
 
   addMiddleware(...fn: DestinationMiddlewareFunction[]): void {
+    /** Make sure we only apply destination filters to actions of the "destination" type to avoid causing issues for hybrid destinations */
     if (this.type === 'destination') {
       this.middleware.push(...fn)
     }
@@ -81,11 +89,18 @@ export class ActionDestination implements DestinationPlugin {
       }
 
       try {
+        if (!(await this.ready())) {
+          throw new Error(
+            'Something prevented the destination from getting ready'
+          )
+        }
+
         recordIntegrationMetric(ctx, {
           integrationName: this.action.name,
           methodName,
           type: 'action',
         })
+
         await this.action[methodName]!(transformedContext)
       } catch (error) {
         recordIntegrationMetric(ctx, {
@@ -113,18 +128,31 @@ export class ActionDestination implements DestinationPlugin {
     return this.action.isLoaded()
   }
 
-  ready(): Promise<unknown> {
-    return this.action.ready ? this.action.ready() : Promise.resolve()
+  async ready(): Promise<boolean> {
+    try {
+      await this.loadPromise.promise
+      return true
+    } catch {
+      return false
+    }
   }
 
   async load(ctx: Context, analytics: Analytics): Promise<unknown> {
+    if (this.loadPromise.isSettled()) {
+      return this.loadPromise.promise
+    }
+
     try {
       recordIntegrationMetric(ctx, {
         integrationName: this.action.name,
         methodName: 'load',
         type: 'action',
       })
-      return await this.action.load(ctx, analytics)
+
+      const loadP = this.action.load(ctx, analytics)
+
+      this.loadPromise.resolve(await loadP)
+      return loadP
     } catch (error) {
       recordIntegrationMetric(ctx, {
         integrationName: this.action.name,
@@ -132,6 +160,8 @@ export class ActionDestination implements DestinationPlugin {
         type: 'action',
         didError: true,
       })
+
+      this.loadPromise.reject(error)
       throw error
     }
   }
@@ -168,7 +198,7 @@ function validate(pluginLike: unknown): pluginLike is Plugin[] {
 }
 
 function isPluginDisabled(
-  userIntegrations: Integrations,
+  userIntegrations: IntegrationsInitOptions,
   remotePlugin: RemotePlugin
 ) {
   const creationNameEnabled = userIntegrations[remotePlugin.creationName]
@@ -195,39 +225,44 @@ async function loadPluginFactory(
   remotePlugin: RemotePlugin,
   obfuscate?: boolean
 ): Promise<void | PluginFactory> {
-  const defaultCdn = new RegExp('https://cdp.orbite.co')
-  const cdn = getCDN()
+  try {
+    const defaultCdn = new RegExp('https://cdp.orbite.co')
+    const cdn = getCDN()
 
-  if (obfuscate) {
-    const urlSplit = remotePlugin.url.split('/')
-    const name = urlSplit[urlSplit.length - 2]
-    const obfuscatedURL = remotePlugin.url.replace(
-      name,
-      btoa(name).replace(/=/g, '')
-    )
-    try {
-      await loadScript(obfuscatedURL.replace(defaultCdn, cdn))
-    } catch (error) {
-      // Due to syncing concerns it is possible that the obfuscated action destination (or requested version) might not exist.
-      // We should use the unobfuscated version as a fallback.
+    if (obfuscate) {
+      const urlSplit = remotePlugin.url.split('/')
+      const name = urlSplit[urlSplit.length - 2]
+      const obfuscatedURL = remotePlugin.url.replace(
+        name,
+        btoa(name).replace(/=/g, '')
+      )
+      try {
+        await loadScript(obfuscatedURL.replace(defaultCdn, cdn))
+      } catch (error) {
+        // Due to syncing concerns it is possible that the obfuscated action destination (or requested version) might not exist.
+        // We should use the unobfuscated version as a fallback.
+        await loadScript(remotePlugin.url.replace(defaultCdn, cdn))
+      }
+    } else {
       await loadScript(remotePlugin.url.replace(defaultCdn, cdn))
     }
-  } else {
-    await loadScript(remotePlugin.url.replace(defaultCdn, cdn))
-  }
 
-  // @ts-expect-error
-  if (typeof window[remotePlugin.libraryName] === 'function') {
     // @ts-expect-error
-    return window[remotePlugin.libraryName] as PluginFactory
+    if (typeof window[remotePlugin.libraryName] === 'function') {
+      // @ts-expect-error
+      return window[remotePlugin.libraryName] as PluginFactory
+    }
+  } catch (err) {
+    console.error('Failed to create PluginFactory', remotePlugin)
+    throw err
   }
 }
 
 export async function remoteLoader(
-  settings: LegacySettings,
-  userIntegrations: Integrations,
+  settings: CDNSettings,
+  integrations: IntegrationsInitOptions,
   mergedIntegrations: Record<string, JSONObject>,
-  obfuscate?: boolean,
+  options?: InitOptions,
   routingMiddleware?: DestinationMiddlewareFunction,
   pluginSources?: PluginFactory[]
 ): Promise<Plugin[]> {
@@ -237,18 +272,19 @@ export async function remoteLoader(
 
   const pluginPromises = (settings.remotePlugins ?? []).map(
     async (remotePlugin) => {
-      if (isPluginDisabled(userIntegrations, remotePlugin)) return
+      if (isPluginDisabled(integrations, remotePlugin)) return
 
       try {
         const pluginFactory =
           pluginSources?.find(
             ({ pluginName }) => pluginName === remotePlugin.name
-          ) || (await loadPluginFactory(remotePlugin, obfuscate))
+          ) || (await loadPluginFactory(remotePlugin, options?.obfuscate))
 
         if (pluginFactory) {
+          const intg = mergedIntegrations[remotePlugin.name]
           const plugin = await pluginFactory({
             ...remotePlugin.settings,
-            ...mergedIntegrations[remotePlugin.name],
+            ...intg,
           })
           const plugins = Array.isArray(plugin) ? plugin : [plugin]
 
@@ -264,12 +300,7 @@ export async function remoteLoader(
               plugin
             )
 
-            /** Make sure we only apply destination filters to actions of the "destination" type to avoid causing issues for hybrid destinations */
-            if (
-              routing.length &&
-              routingMiddleware &&
-              plugin.type === 'destination'
-            ) {
+            if (routing.length && routingMiddleware) {
               wrapper.addMiddleware(routingMiddleware)
             }
 

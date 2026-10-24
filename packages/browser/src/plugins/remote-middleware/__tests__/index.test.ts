@@ -1,7 +1,7 @@
 import { remoteMiddlewares } from '..'
 import { Context } from '../../../core/context'
 import jsdom from 'jsdom'
-
+import { cdnSettingsMinimal } from '../../../test-helpers/fixtures'
 
 describe('Remote Middleware', () => {
   beforeEach(async () => {
@@ -31,7 +31,7 @@ describe('Remote Middleware', () => {
 
   it('ignores empty dictionaries', async () => {
     const md = await remoteMiddlewares(Context.system(), {
-      integrations: {},
+      integrations: cdnSettingsMinimal.integrations,
     })
 
     expect(md).toEqual([])
@@ -39,7 +39,7 @@ describe('Remote Middleware', () => {
 
   it('doesnt load entries if their value is false', async () => {
     const md = await remoteMiddlewares(Context.system(), {
-      integrations: {},
+      ...cdnSettingsMinimal,
       enabledMiddleware: {
         '@segment/analytics.js-middleware-braze-deduplicate': false,
       },
@@ -49,10 +49,10 @@ describe('Remote Middleware', () => {
   })
 
   // Orbite does not host third-party middleware scripts on its CDN.
-  // These tests require cdn.segment.com to be reachable. Skip for Orbite.
-  xit('loads middleware that exist', async () => {
+  // These tests require cdp.orbite.co to be reachable. Skip for Orbite.
+  it.skip('loads middleware that exist', async () => {
     const md = await remoteMiddlewares(Context.system(), {
-      integrations: {},
+      ...cdnSettingsMinimal,
       enabledMiddleware: {
         '@segment/analytics.js-middleware-braze-deduplicate': true,
       },
@@ -62,9 +62,9 @@ describe('Remote Middleware', () => {
     expect(md[0]).toMatchInlineSnapshot(`[Function]`)
   })
 
-  xit('ignores segment namespace', async () => {
+  it.skip('ignores segment namespace', async () => {
     const md = await remoteMiddlewares(Context.system(), {
-      integrations: {},
+      ...cdnSettingsMinimal,
       enabledMiddleware: {
         '@segment/analytics.js-middleware-braze-deduplicate': true,
         'analytics.js-middleware-braze-deduplicate': true,
@@ -75,9 +75,9 @@ describe('Remote Middleware', () => {
     expect(md[0]).toEqual(md[1])
   })
 
-  xit('loads middleware through remote script tags', async () => {
+  it.skip('loads middleware through remote script tags', async () => {
     await remoteMiddlewares(Context.system(), {
-      integrations: {},
+      ...cdnSettingsMinimal,
       enabledMiddleware: {
         '@segment/analytics.js-middleware-braze-deduplicate': true,
       },
@@ -94,12 +94,12 @@ describe('Remote Middleware', () => {
     `)
   })
 
-  xit('ignores middleware that do not exist', async () => {
+  it.skip('ignores middleware that do not exist', async () => {
     jest.spyOn(global.console, 'error').mockImplementation()
 
     const ctx = Context.system()
     const md = await remoteMiddlewares(ctx, {
-      integrations: {},
+      ...cdnSettingsMinimal,
       enabledMiddleware: {
         '@segment/analytics.js-middleware-braze-deduplicate': true,
         '@segment/analytics.js-middleware-that-does-not-exist': true,

@@ -12,18 +12,25 @@ export const withCMP = createWrapper({
     await resolveWhen(() => window.CMP !== undefined, 500)
   },
 
-  // Wrapper waits to load segment / get categories until this function returns / resolves
+  // Allow for control over wrapper + analytics initialization.
+  // Delay any calls to analytics.load() until this function returns / resolves.
   shouldLoadSegment: async (ctx) => {
-    await resolveWhen(
-      () => !window.CMP.popUpVisible(),
-      500
-    )
-
+    /*
     // Optional -- for granular control of initialization
     if (noConsentNeeded) {
       ctx.abort({ loadSegmentNormally: true })
     } else if (allTrackingDisabled) {
       ctx.abort({ loadSegmentNormally: false })
+    }
+    */
+    if (window.CMP.ConsentModel === 'opt-out') {
+      return ctx.load({ consentModel: 'opt-out' })
+    } else {
+      await resolveWhen(
+        () => !window.CMP.popUpVisible() && window.CMP.categories.length,
+        500
+      )
+      return ctx.load({ consentModel: 'opt-in' })
     }
   },
 
@@ -39,13 +46,24 @@ export const withCMP = createWrapper({
 })
 ```
 
+### Settings / Configuration
+
+See: [settings.ts](src/types/settings.ts)
+
+### Consent Models
+
+The wrapper has different behavior based on the consent-model:
+
+- **opt-in** - (strict, GDPR scenario) -- Unconsented device mode destinations are removed
+- **opt-out** - Device mode destinations are loaded, but with blocking middleware
+
 ## Wrapper Usage API
 
 ## `npm`
 
 ```js
 import { withCMP } from './wrapper'
-import { AnalyticsBrowser } from '@segment/analytics-next'
+import { AnalyticsBrowser } from '@orbite/analytics-js'
 
 export const analytics = new AnalyticsBrowser()
 
@@ -56,6 +74,7 @@ withCMP(analytics).load({
 ```
 
 ## Snippet users (window.analytics)
+
 ### Note: This assumes a project that can consume the library via es6 imports, using a like Webpack.
 
 1. Delete the `analytics.load()` line from the snippet
@@ -74,7 +93,8 @@ withCMP(window.analytics).load('<MY_WRITE_KEY')
 
 ## Wrapper Examples
 
-- [OneTrust](../consent-wrapper-onetrust) (beta)
+- [OneTrust](../consent-wrapper-onetrust) 
+- [TrustArc](https://github.com/trustarc/trustarc-segment-wrapper)
 
 ## Settings / Options / Configuration
 
@@ -82,7 +102,7 @@ See the complete list of settings in the **[Settings interface](src/types/settin
 
 ## Special Requirements
 
-- For npm users, this library expects a version of `@segment/analytics-next` >= **1.53.1**. Note: If your library depends on this library, you should have the appropriate peer dependency declaration. See our `package.json` for an example.
+- For npm users, this library expects a version of `@orbite/analytics-js` >= **1.53.1**. Note: If your library depends on this library, you should have the appropriate peer dependency declaration. See our `package.json` for an example.
 
 ## Development
 

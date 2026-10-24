@@ -1,6 +1,6 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "pipeline": {
+  "tasks": {
     "build": {
       "dependsOn": [
         "^build"
@@ -11,7 +11,8 @@
         "**/webpack.config*",
         "**/*.ts",
         "**/*.tsx",
-        "!**/__tests__/**",
+        "!*/**/*.generated.*/*",
+        "!*/**/__tests__/**",
         "!src/**/test-helpers/**"
       ],
       "outputs": [
@@ -19,7 +20,23 @@
         ".next/**"
       ]
     },
+    "build:esm": {
+      "dependsOn": [
+        "^build:esm"
+      ],
+      "inputs": [
+        "**/tsconfig*.json",
+        "**/*.ts",
+        "**/*.tsx",
+        "!*/**/__tests__/**",
+        "!src/**/test-helpers/**"
+      ],
+      "outputs": [
+        "**/dist/esm/**"
+      ]
+    },
     "test": {
+      "env": ["COVERAGE"], 
       "dependsOn": [
         "build"
       ]
@@ -28,6 +45,12 @@
       "dependsOn": [
         "build"
       ]
+    },
+    "tsc": {
+      "dependsOn": ["^build:esm"] 
+    },
+    "assert-generated": {
+      "cache": false
     },
     "watch": {
       "cache": false,
@@ -42,8 +65,7 @@
       "inputs": [
         "**/tsconfig*.json",
         "**/*.ts",
-        "**/*.tsx",
-        "**/*.js"
+        "**/*.tsx"
       ],
       "outputs": []
     },
