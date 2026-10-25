@@ -7,6 +7,7 @@ import {
   normalizeText,
   resolveText,
   TextOptions,
+  TextPreference,
   TextSource,
 } from './text'
 
@@ -169,6 +170,8 @@ export interface AutocaptureProperties {
   swipe_direction?: SwipeDirection
   swipe_distance?: number
   swipe_duration?: number
+  /** text of the slide / item the swipe started on, when the swipe target is a container */
+  swipe_item_text?: string
   [key: string]: unknown
 }
 
@@ -238,6 +241,8 @@ const LABEL_FORWARD_WINDOW_MS = 100
 const POINTER_CLICK_WINDOW_MS = 1000
 // slower gestures are drags / reading, not swipes
 const MAX_SWIPE_DURATION_MS = 1000
+// browsers can stop a few (sub)pixels short of the bottom, which would never count as 100%
+const SCROLL_BOTTOM_TOLERANCE_PX = 2
 
 const joinSelectors = (...selectors: (string | undefined)[]): string =>
   selectors.filter(Boolean).join(',')
@@ -363,8 +368,11 @@ export function autocapture(settings: AutocaptureSettings = {}): Plugin {
       ? settings.eventNames(interaction, props)
       : settings.eventNames?.[interaction] ?? DEFAULT_EVENT_NAMES[interaction]
 
-  function describe(el: Element): Partial<AutocaptureProperties> {
-    const { text, source } = resolveText(el, textOptions)
+  function describe(
+    el: Element,
+    prefer?: TextPreference
+  ): Partial<AutocaptureProperties> {
+    const { text, source } = resolveText(el, textOptions, prefer)
     const form = (el as HTMLInputElement).form ?? el.closest('form')
     const classes = stableClasses(el)
     return {
@@ -479,11 +487,14 @@ export function autocapture(settings: AutocaptureSettings = {}): Plugin {
     const type = (el.getAttribute('type') ?? '').toLowerCase()
     const extra: Partial<AutocaptureProperties> = {}
 
-    if (type === 'checkbox' || type === 'radio') {
+    const toggle = type === 'checkbox' || type === 'radio'
+    if (toggle) {
       extra.checked = input.checked
     }
     if (
       settings.captureInputValues &&
+      // without a value attribute, a checkbox / radio value is just "on"
+      (!toggle || el.hasAttribute('value')) &&
       !isSensitiveField(el) &&
       !closest(el, textOptions.maskSelector)
     ) {
@@ -514,10 +525,11 @@ export function autocapture(settings: AutocaptureSettings = {}): Plugin {
     if (!pageHeight || pageHeight <= viewportHeight) return
 
     const scrollTop = window.scrollY ?? doc.scrollTop
-    const percent = Math.min(
-      100,
-      ((scrollTop + viewportHeight) / pageHeight) * 100
-    )
+    const seen = scrollTop + viewportHeight
+    const percent =
+      seen >= pageHeight - SCROLL_BOTTOM_TOLERANCE_PX
+        ? 100
+        : (seen / pageHeight) * 100
     crossedThresholds(scrollThresholds, scrollReached, percent).forEach(
       (depth) =>
         send('scroll', doc, event, {
@@ -657,11 +669,27 @@ export function autocapture(settings: AutocaptureSettings = {}): Plugin {
 
     const el = swipeTarget(start.target, horizontal)
     if (shouldIgnore(el)) return
-    capture('swipe', el, event, {
+    const isContainer = el !== start.target && el.contains(start.target)
+    send('swipe', el, event, {
+      ...describe(el, isContainer ? 'label' : 'content'),
       swipe_direction: direction,
       swipe_distance: Math.round(distance),
       swipe_duration: duration,
+      swipe_item_text: isContainer
+        ? swipeItemText(el, start.target)
+        : undefined,
     })
+  }
+
+  // the direct child of the container (the slide) that the swipe started on
+  function swipeItemText(
+    container: Element,
+    target: Element
+  ): string | undefined {
+    let item: Element | null = target
+    while (item && item.parentElement !== container) item = item.parentElement
+    const text = item ? resolveText(item, textOptions).text : ''
+    return text || undefined
   }
 
   const onTouchCancel = (): void => {

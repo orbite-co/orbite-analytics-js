@@ -147,14 +147,14 @@ export default defineComponent({
 
 ## Autocapture
 
-Automatically track clicks and taps, form submissions, field changes, swipes, scroll depth and video progress, without instrumenting each element. Every element event is labelled with the closest readable text of the element (similar to Heap): its own text, then its accessible name (`aria-label`, `<label>`, `title`, `alt`, ...), then nearby text such as the heading of the card or section it sits in.
+Automatically track clicks and taps, form submissions, field changes, swipes, scroll depth and video progress, without instrumenting each element. Every element event is labelled with the closest readable text of the element (similar to Heap): its own text, then its accessible name (`aria-label`, `<label>`, `title`, `alt`, ...), then nearby text such as the heading of the card or section it sits in. Icon or emoji-only text is only used when nothing better is found, and carousels and videos are named by their label or heading rather than their content.
 
 | Event              | `interaction`    | When                                                                                     | Extra properties                                                |
 | ------------------ | ---------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `Element Clicked`  | `click`          | Click or tap on a link, button, field, ARIA widget, ...                                  | `input_method`: `mouse` \| `touch` \| `pen` \| `keyboard`        |
 | `Form Submitted`   | `submit`         | A form is submitted                                                                      | `submitter_text`                                                |
 | `Element Changed`  | `change`         | A field changes                                                                          | `checked`, `value` (opt-in)                                     |
-| `Element Swiped`   | `swipe`          | A one-finger swipe ≥ 50px in under 1s, on the carousel / scroller / element being swiped | `swipe_direction`, `swipe_distance` (px), `swipe_duration` (ms) |
+| `Element Swiped`   | `swipe`          | A one-finger swipe ≥ 50px in under 1s, on the carousel / scroller / element being swiped | `swipe_direction`, `swipe_distance` (px), `swipe_duration` (ms), `swipe_item_text` (the slide swiped on) |
 | `Page Scrolled`    | `scroll`         | The page is seen down to 10%, 20%, ... 100%, once each per page (SPA url changes reset)  | `scroll_depth`, `page_height`, `viewport_height`                |
 | `Video Started`    | `video_start`    | A `<video>` starts playing                                                               | `video_percent`, `video_position`, `video_duration`, `video_src`, `video_muted`, `video_autoplay` |
 | `Video Progress`   | `video_progress` | Playback reaches 10%, 20%, ... 90%, once each per playback                               | same as above                                                   |

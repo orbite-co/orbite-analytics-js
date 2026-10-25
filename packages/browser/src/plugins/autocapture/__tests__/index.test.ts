@@ -131,6 +131,36 @@ describe('autocapture plugin', () => {
       })
     })
 
+    it('looks past symbol-only text (icons, emoji) for close text', async () => {
+      await setup(`
+        <div class="card">
+          <h3>Invoice #42</h3>
+          <div class="actions"><button>🗑</button><button>×</button></div>
+        </div>`)
+      click('button')
+      expect(lastCall()[1]).toMatchObject({
+        target_text: 'Invoice #42',
+        text_source: 'nearby',
+      })
+    })
+
+    it('keeps symbol-only text when nothing better exists', async () => {
+      await setup(`<button>🗑</button>`)
+      click('button')
+      expect(lastCall()[1].target_text).toBe('🗑')
+    })
+
+    it('never names an element by the label of another field', async () => {
+      await setup(
+        `<form><label for="pw">Password</label><input id="pw" type="password"><select name="country"><option>BR</option></select><span>x</span><button role="switch" id="s"></button></form>`
+      )
+      click('select')
+      expect(lastCall()[1]).toMatchObject({
+        target_text: 'country',
+        text_source: 'name',
+      })
+    })
+
     it('prefers the previous sibling text as close text', async () => {
       await setup(
         `<div><span>Notifications</span><button role="switch"></button></div>`
@@ -396,6 +426,13 @@ describe('autocapture plugin', () => {
       ])
     })
 
+    it('counts the bottom of the page as 100% despite rounding', async () => {
+      await setup(`<main></main>`, { scrollThresholds: [100] })
+      setPageHeight(1000)
+      scrollTo(499) // 1px short of the bottom
+      expect(lastCall()[1].scroll_depth).toBe(100)
+    })
+
     it('starts over when a single page app changes url', async () => {
       await setup(`<main></main>`)
       setPageHeight(2000)
@@ -484,6 +521,20 @@ describe('autocapture plugin', () => {
       ])
     })
 
+    it('names a video by its section heading over sibling text', async () => {
+      await setup(
+        `<section><h2>Product tour</h2><p>Loading player…</p><video src="/tour.mp4"></video></section>
+         <figure><video id="f" src="/b.mp4"></video><figcaption>Onboarding demo</figcaption></figure>`
+      )
+      video = document.querySelector('video')!
+      Object.defineProperty(video, 'duration', { value: 10 })
+      fire('play', 0)
+      expect(lastCall()[1].target_text).toBe('Product tour')
+      video = document.querySelector('#f')!
+      fire('play', 0)
+      expect(lastCall()[1].target_text).toBe('Onboarding demo')
+    })
+
     it('treats replaying after the end as a new playback', async () => {
       await setupVideo(10, { videoThresholds: [50] })
       fire('play', 0)
@@ -552,6 +603,18 @@ describe('autocapture plugin', () => {
       expect(lastCall()[1].swipe_direction).toBe('right')
     })
 
+    it('names labelled carousels by their label and reports the swiped slide', async () => {
+      await setup(
+        `<div aria-roledescription="carousel" aria-label="Featured products"><div class="slide"><h3>Running shoes</h3></div><div class="slide"><h3>Socks</h3></div></div>`
+      )
+      swipe(document.querySelectorAll('h3')[1], [300, 100], [80, 100])
+      expect(lastCall()[1]).toMatchObject({
+        target_text: 'Featured products',
+        text_source: 'aria-label',
+        swipe_item_text: 'Socks',
+      })
+    })
+
     it('ignores vertical swipes by default, unless enabled', async () => {
       await setup(html)
       swipe(document.querySelector('h3')!, [100, 400], [100, 100])
@@ -583,6 +646,21 @@ describe('autocapture plugin', () => {
         target_text: 'Card',
       })
     })
+  })
+
+  it('only sends checkbox values that are set explicitly', async () => {
+    await setup(
+      `<label><input type="checkbox" name="a"> A</label><label><input type="checkbox" name="b" value="pro"> B</label>`,
+      { captureInputValues: true }
+    )
+    const toggle = (name: string) => {
+      const el = document.querySelector(`[name=${name}]`) as HTMLInputElement
+      el.checked = true
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+      return lastCall()[1]
+    }
+    expect(toggle('a').value).toBeUndefined()
+    expect(toggle('b').value).toBe('pro')
   })
 
   it('stops capturing after unload', async () => {
