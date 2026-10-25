@@ -165,6 +165,16 @@ async function registerPlugins(
       })
     : undefined
 
+  const autocapturePlugin = options.autocapture
+    ? await import(
+        /* webpackChunkName: "autocapture" */ '../plugins/autocapture'
+      ).then((mod) =>
+        mod.autocapture(
+          options.autocapture === true ? {} : options.autocapture || {}
+        )
+      )
+    : undefined
+
   const mergedSettings = mergedOptions(cdnSettings, options)
   const remotePlugins = await remoteLoader(
     cdnSettings,
@@ -179,6 +189,10 @@ async function registerPlugins(
 
   if (schemaFilter) {
     basePlugins.push(schemaFilter)
+  }
+
+  if (autocapturePlugin) {
+    basePlugins.push(autocapturePlugin)
   }
 
   const shouldIgnoreOrbite =

@@ -16,6 +16,13 @@ export * from './core/user'
 
 export type { AnalyticsSnippet } from './browser/standalone-interface'
 export type { MiddlewareFunction } from './plugins/middleware'
+export { autocapture } from './plugins/autocapture'
+export type {
+  AutocaptureSettings,
+  AutocaptureProperties,
+  AutocaptureEventType,
+  AutocaptureInteraction,
+} from './plugins/autocapture'
 export { getGlobalAnalytics } from './lib/global-analytics-helper'
 export { UniversalStorage, Store, StorageObject } from './core/storage'
 export { orbite } from './plugins/orbite'

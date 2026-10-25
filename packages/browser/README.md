@@ -145,6 +145,75 @@ export default defineComponent({
 </script>
 ```
 
+## Autocapture
+
+Automatically track clicks and taps, form submissions, field changes, swipes, scroll depth and video progress, without instrumenting each element. Every element event is labelled with the closest readable text of the element (similar to Heap): its own text, then its accessible name (`aria-label`, `<label>`, `title`, `alt`, ...), then nearby text such as the heading of the card or section it sits in.
+
+| Event              | `interaction`    | When                                                                                     | Extra properties                                                |
+| ------------------ | ---------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `Element Clicked`  | `click`          | Click or tap on a link, button, field, ARIA widget, ...                                  | `input_method`: `mouse` \| `touch` \| `pen` \| `keyboard`        |
+| `Form Submitted`   | `submit`         | A form is submitted                                                                      | `submitter_text`                                                |
+| `Element Changed`  | `change`         | A field changes                                                                          | `checked`, `value` (opt-in)                                     |
+| `Element Swiped`   | `swipe`          | A one-finger swipe ≥ 50px in under 1s, on the carousel / scroller / element being swiped | `swipe_direction`, `swipe_distance` (px), `swipe_duration` (ms) |
+| `Page Scrolled`    | `scroll`         | The page is seen down to 10%, 20%, ... 100%, once each per page (SPA url changes reset)  | `scroll_depth`, `page_height`, `viewport_height`                |
+| `Video Started`    | `video_start`    | A `<video>` starts playing                                                               | `video_percent`, `video_position`, `video_duration`, `video_src`, `video_muted`, `video_autoplay` |
+| `Video Progress`   | `video_progress` | Playback reaches 10%, 20%, ... 90%, once each per playback                               | same as above                                                   |
+| `Video Completed`  | `video_complete` | Playback ends (replaying after that counts as a new playback)                            | same as above                                                   |
+
+```ts
+import { AnalyticsBrowser } from '@orbite/analytics-js'
+
+// npm: as an init option (lazy-loaded) ...
+export const analytics = AnalyticsBrowser.load(
+  { writeKey: '<YOUR_WRITE_KEY>' },
+  { autocapture: true }
+)
+
+// ... or as a plugin
+import { autocapture } from '@orbite/analytics-js'
+AnalyticsBrowser.load({
+  writeKey: '<YOUR_WRITE_KEY>',
+  plugins: [autocapture({ ignoreSelector: '.no-track' })],
+})
+```
+
+Snippet users can pass the same option: `analytics.load('<YOUR_WRITE_KEY>', { autocapture: true })`.
+
+A click on `<button class="btn">Sign up</button>` sends:
+
+```js
+analytics.track('Element Clicked', {
+  autocapture: true,
+  interaction: 'click',
+  target_text: 'Sign up',
+  text_source: 'text', // text | aria-label | aria-labelledby | label | title | alt | value | placeholder | nearby | name | masked
+  tag_name: 'button',
+  selector: 'form#signup > button.btn',
+  classes: ['btn'],
+  // when present: id, href, name, type, role, form_id, form_name, attributes (data-*), checked, value, submitter_text
+})
+```
+
+| Option               | Default                                                                                  | Description                                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `events`             | `['click', 'submit', 'change', 'scroll', 'video', 'swipe']`                              | Interactions to capture.                                                                            |
+| `eventNames`         | see the table above                                                                      | Event names keyed by `interaction`, or `(interaction, props) => string` (e.g. `` `Clicked "${props.target_text}"` ``). |
+| `scrollThresholds`   | `[10, 20, ..., 100]`                                                                     | Scroll depths (% of the page seen) to track.                                                        |
+| `videoThresholds`    | `[10, 20, ..., 90]`                                                                      | Video progress (% of the duration) to track.                                                        |
+| `swipeDirections`    | `['left', 'right']`                                                                      | Swipe directions to track. Vertical swipes are mostly page scrolls, already covered by `scroll`.    |
+| `minSwipeDistance`   | `50`                                                                                     | Minimum swipe length in px.                                                                         |
+| `captureAllClicks`   | `false`                                                                                  | Capture clicks on any element, not only links, buttons, inputs and ARIA widgets.                    |
+| `clickableSelector`  |                                                                                          | Extra selector treated as clickable, e.g. `'.card'`.                                                |
+| `ignoreSelector`     |                                                                                          | Never capture these elements or their children. `[data-autocapture-ignore]` always applies.         |
+| `maskSelector`       |                                                                                          | Replace the text of these elements with `[masked]`. `[data-autocapture-mask]` always applies.       |
+| `captureInputValues` | `false`                                                                                  | Send field values on change. Password, hidden, payment and credential-like fields are never sent.   |
+| `maxTextLength`      | `255`                                                                                    | Truncate captured text.                                                                             |
+| `nearbyTextDepth`    | `3`                                                                                      | Ancestor levels searched for close text.                                                            |
+| `maxSelectorDepth`   | `8`                                                                                      | Levels in the `selector` property.                                                                  |
+| `beforeCapture`      |                                                                                          | `(props, element, event) => props \| false` to enrich or drop an event.                             |
+
+Emails and card-number-like digit sequences in captured text are always redacted.
+
 ## Support for Web Workers (Experimental)
  While this package does not support web workers out of the box, there are options:
 
