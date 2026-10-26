@@ -12,6 +12,7 @@ import { UserOptions } from '../core/user'
 import { HighEntropyHint } from '../lib/client-hints/interfaces'
 import { IntegrationsOptions } from '@orbite/analytics-core'
 import { OrbiteSettings } from '../plugins/orbite'
+import type { AutocaptureSettings } from '../plugins/autocapture'
 
 interface VersionSettings {
   version?: string
@@ -248,6 +249,16 @@ export interface InitOptions {
    * default: analytics
    */
   globalAnalyticsKey?: string
+
+  /**
+   * Automatically track clicks / taps, form submissions, field changes, swipes, scroll depth and video progress, labelling each one with the closest readable text (Heap-style).
+   * Pass `true` for the defaults, or settings to customize what gets captured.
+   * @example
+   * ```ts
+   * autocapture: { ignoreSelector: '.no-track', captureAllClicks: true }
+   * ```
+   */
+  autocapture?: boolean | AutocaptureSettings
 
   /**
    * Disable sending any data to Orbite servers. All emitted events and API calls (including .ready()), will be no-ops, and no cookies or localstorage will be used.
